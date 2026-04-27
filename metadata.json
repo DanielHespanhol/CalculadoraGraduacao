@@ -1,0 +1,6 @@
+{
+  "name": "Calculadora de Semestre Acadêmico",
+  "description": "Calculadora interativa para estimar valores de parcelas de graduação com base no valor do crédito, carga horária e descontos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
