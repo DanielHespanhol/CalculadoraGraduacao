@@ -43,11 +43,28 @@ export default function App() {
   const presencialResults = useMemo(() => {
     const pricePerHour = selectedPCourse.creditValue / 20;
     const totalSemester = pricePerHour * hours;
-    const grossInstallment = totalSemester / pInstallments;
-    const discountAmountTotal = totalSemester * (pDiscount / 100);
-    const totalWithDiscount = totalSemester - discountAmountTotal;
-    const installmentWithDiscount = totalWithDiscount / pInstallments;
-    const discountPerInstallment = grossInstallment - installmentWithDiscount;
+    
+    let grossInstallment: number;
+    let installmentWithDiscount: number;
+    let totalWithDiscount: number;
+    let discountAmountTotal: number;
+    let discountPerInstallment: number;
+
+    if (selectedPCampaign === 'imperdivel' && selectedPCourse.discounts.imperdivel) {
+      // For "Imperdível", the installment is fixed at the campaign value.
+      // We compare it against a standard 6-installment semester for clarity.
+      installmentWithDiscount = selectedPCourse.discounts.imperdivel.value;
+      grossInstallment = totalSemester / 6;
+      discountPerInstallment = grossInstallment - installmentWithDiscount;
+      totalWithDiscount = installmentWithDiscount * 6;
+      discountAmountTotal = totalSemester - totalWithDiscount;
+    } else {
+      grossInstallment = totalSemester / pInstallments;
+      discountAmountTotal = totalSemester * (pDiscount / 100);
+      totalWithDiscount = totalSemester - discountAmountTotal;
+      installmentWithDiscount = totalWithDiscount / pInstallments;
+      discountPerInstallment = grossInstallment - installmentWithDiscount;
+    }
 
     return {
       grossInstallment,
@@ -56,7 +73,7 @@ export default function App() {
       discountAmountTotal,
       totalWithDiscount,
     };
-  }, [selectedPCourse, hours, pDiscount, pInstallments]);
+  }, [selectedPCourse, hours, pDiscount, pInstallments, selectedPCampaign]);
 
   const eadResults = useMemo(() => {
     const grossMonthly = selectedECourse.monthlyValue;
@@ -88,11 +105,19 @@ export default function App() {
 
   const pCampaignLabels: Record<keyof Course['discounts'], string> = {
     vestibular: 'Vestibular com Bolsa',
-    transferencia: 'Transferência / 2ª Graduação',
-    seJoga: 'Se Joga',
+    transferencia: 'Diplo / Transf / Reing',
     convenio: 'Convênio Empresa',
-    imperdivel: 'Imperdível'
+    imperdivel: 'Imperdível',
+    seJoga: 'Se Joga'
   };
+
+  const campaignOrder: (keyof Course['discounts'])[] = [
+    'vestibular',
+    'transferencia',
+    'convenio',
+    'imperdivel',
+    'seJoga'
+  ];
 
   const getDiscountRange = (course: Course, campaign: keyof Course['discounts']) => {
     const d = course.discounts[campaign];
@@ -113,15 +138,16 @@ export default function App() {
       const impValue = course.discounts.imperdivel.value;
       const calculatedDiscount = ((grossMonthly - impValue) / grossMonthly) * 100;
       setPDiscount(Number(calculatedDiscount.toFixed(2)));
+      setPInstallments(course.discounts.imperdivel.installments);
     }
   };
 
   const campaignLabels: Record<keyof EADCourse['discounts'], string> = {
-    vestibular: 'Vestibular',
-    convenio: 'Convênio / Empresa',
-    seJoga: 'Se Joga',
-    transferencia: 'Diplomado / Transf / Reing',
-    imperdivel: 'Imperdível'
+    vestibular: 'Vestibular com Bolsa',
+    transferencia: 'Diplo / Transf / Reing',
+    convenio: 'Convênio Empresa',
+    imperdivel: 'Imperdível',
+    seJoga: 'Se Joga'
   };
 
   return (
@@ -216,13 +242,13 @@ export default function App() {
                           }}
                           className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
                         >
-                          {Object.entries(pCampaignLabels).map(([key, label]) => (
+                          {campaignOrder.map((key) => (
                             <option key={key} value={key} className="bg-indigo-800">
-                              {label}
+                              {pCampaignLabels[key]}
                             </option>
                           ))}
                         </select>
-                        {getDiscountRange(selectedPCourse, selectedPCampaign) && (
+                        {selectedPCampaign !== 'imperdivel' && getDiscountRange(selectedPCourse, selectedPCampaign) && (
                           <p className="text-[10px] font-bold text-indigo-200 mt-1 ml-1 opacity-70">
                             Min/Max: {getDiscountRange(selectedPCourse, selectedPCampaign)}
                           </p>
@@ -258,8 +284,11 @@ export default function App() {
                           min="0"
                           max="100"
                           step="5"
+                          disabled={selectedPCampaign === 'imperdivel'}
                           onChange={(e) => setPDiscount(Number(e.target.value))}
-                          className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 text-sm font-bold"
+                          className={`w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 text-sm font-bold transition-all ${
+                            selectedPCampaign === 'imperdivel' ? 'opacity-50 cursor-not-allowed grayscale-50' : ''
+                          }`}
                         />
                       </div>
                     </div>
@@ -269,19 +298,32 @@ export default function App() {
                         <CreditCard size={12} /> Parcelamento
                       </label>
                       <div className="grid grid-cols-4 gap-2">
-                        {Array.from(new Set([1, 4, 5, 6, 7, 8, 9, 10, pInstallments])).sort((a, b) => a - b).map(n => (
-                          <button
-                            key={n}
-                            onClick={() => setPInstallments(n)}
-                            className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${
-                              pInstallments === n 
-                              ? 'bg-pink-500 text-white border-pink-400 shadow-md' 
-                              : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
-                            }`}
-                          >
-                            {n}x
-                          </button>
-                        ))}
+                        {selectedPCampaign === 'imperdivel' ? (
+                          <div className="col-span-4 bg-pink-500 text-white rounded-2xl py-3 px-5 flex items-center justify-between shadow-lg border-2 border-pink-400">
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Campanha</p>
+                              <p className="font-black text-sm">PLANO FIXO</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Duração</p>
+                              <p className="font-black text-sm">{selectedPCourse.discounts.imperdivel?.installments}x</p>
+                            </div>
+                          </div>
+                        ) : (
+                          Array.from(new Set([1, 4, 5, 6, 7, 8, 9, 10, pInstallments])).sort((a, b) => a - b).map(n => (
+                            <button
+                              key={n}
+                              onClick={() => setPInstallments(n)}
+                              className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${
+                                pInstallments === n 
+                                ? 'bg-pink-500 text-white border-pink-400 shadow-md' 
+                                : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                              }`}
+                            >
+                              {n}x
+                            </button>
+                          ))
+                        )}
                       </div>
                     </div>
                   </>
@@ -323,9 +365,9 @@ export default function App() {
                           }}
                           className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
                         >
-                          {Object.entries(campaignLabels).map(([key, label]) => (
+                          {campaignOrder.map((key) => (
                             <option key={key} value={key} className="bg-indigo-800">
-                              {label}
+                              {campaignLabels[key as keyof EADCourse['discounts']]}
                             </option>
                           ))}
                         </select>
@@ -345,8 +387,11 @@ export default function App() {
                           value={eDiscount}
                           min="0"
                           max="100"
+                          disabled={selectedCampaign === 'imperdivel'}
                           onChange={(e) => setEDiscount(Number(e.target.value))}
-                          className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 text-sm font-bold"
+                          className={`w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 text-sm font-bold transition-all ${
+                            selectedCampaign === 'imperdivel' ? 'opacity-50 cursor-not-allowed grayscale-50' : ''
+                          }`}
                         />
                       </div>
                     </div>

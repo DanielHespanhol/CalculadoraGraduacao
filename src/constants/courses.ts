@@ -36,7 +36,7 @@ export const PRESENCIAL_COURSES: Course[] = [
   { id: 'arquitetura', name: 'Arquitetura e Urbanismo', creditValue: 1718.85, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [0, 0], convenio: 60, imperdivel: { value: 699, installments: 72 } } },
   { id: 'biomedicina', name: 'Biomedicina', creditValue: 1502.39, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [0, 0], convenio: 50, imperdivel: { value: 599, installments: 72 } } },
   { id: 'direito', name: 'Direito', creditValue: 1276.70, discounts: { vestibular: [20, 30], transferencia: [25, 35], seJoga: [0, 0], convenio: 60 } },
-  { id: 'enfermagem', name: 'Enfermagem', creditValue: 892.70, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [0, 0], convenio: 40 } },
+  { id: 'enfermagem', name: 'Enfermagem', creditValue: 892.70, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [0, 0], convenio: 40, imperdivel: { value: 599, installments: 72 } } },
   { id: 'engenharias', name: 'Engenharias', creditValue: 1477.45, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [0, 0], convenio: 60, imperdivel: { value: 799, installments: 72 } } },
   { id: 'gestao-rh', name: 'Gestão de Recursos Humanos', creditValue: 604.30, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [0, 0], convenio: 60, imperdivel: { value: 309, installments: 36 } } },
   { id: 'marketing', name: 'Marketing', creditValue: 604.30, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [0, 0], convenio: 60, imperdivel: { value: 309, installments: 36 } } },
