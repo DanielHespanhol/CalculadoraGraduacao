@@ -9,21 +9,40 @@ import {
   Download, 
   TrendingUp,
   Monitor,
-  Users
+  Users,
+  X,
+  Printer
 } from 'lucide-react';
-import { PRESENCIAL_COURSES, EAD_COURSES, Course, EADCourse } from './constants/courses';
+import { PRESENCIAL_COURSES_BY_CAMPUS, EAD_COURSES, Course, EADCourse } from './constants/courses';
 
 type TabType = 'presencial' | 'ead';
 
+const CAMPUS_LIST = [
+  { id: 'CX', label: 'CX', fullName: 'Caxias' },
+  { id: 'BG', label: 'BG', fullName: 'Bento Gonçalves' },
+  { id: 'NH', label: 'NH', fullName: 'Novo Hamburgo' },
+  { id: 'IBG', label: 'IBG', fullName: 'Ibegen' },
+  { id: 'POA', label: 'POA', fullName: 'Porto Alegre ZN' },
+] as const;
+
+type CampusId = typeof CAMPUS_LIST[number]['id'];
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('presencial');
+  const [selectedCampus, setSelectedCampus] = useState<CampusId>('NH');
+
+  const currentPresencialCourses = useMemo(() => {
+    return PRESENCIAL_COURSES_BY_CAMPUS[selectedCampus] || PRESENCIAL_COURSES_BY_CAMPUS['NH'];
+  }, [selectedCampus]);
 
   // Presencial States
-  const [selectedPCourseId, setSelectedPCourseId] = useState<string>(PRESENCIAL_COURSES[0].id);
+  const [selectedPCourseId, setSelectedPCourseId] = useState<string>(currentPresencialCourses[0]?.id || '');
   const [hours, setHours] = useState<number>(360);
   const [pDiscount, setPDiscount] = useState<number>(0);
   const [pInstallments, setPInstallments] = useState<number>(6);
   const [selectedPCampaign, setSelectedPCampaign] = useState<keyof Course['discounts']>('vestibular');
+  const [selectedSemester, setSelectedSemester] = useState<'S1' | 'S2'>('S1');
+  const [showBudgetModal, setShowBudgetModal] = useState(false);
 
   // EAD States
   const [selectedECourseId, setSelectedECourseId] = useState<string>(EAD_COURSES[0].id);
@@ -31,9 +50,19 @@ export default function App() {
   const [eDiscount, setEDiscount] = useState<number>(EAD_COURSES[0].discounts.vestibular);
 
   const selectedPCourse = useMemo(() => 
-    PRESENCIAL_COURSES.find(c => c.id === selectedPCourseId) || PRESENCIAL_COURSES[0],
-    [selectedPCourseId]
+    currentPresencialCourses.find(c => c.id === selectedPCourseId) || currentPresencialCourses[0],
+    [currentPresencialCourses, selectedPCourseId]
   );
+
+  const handleCampusChange = (campusId: CampusId) => {
+    setSelectedCampus(campusId);
+    const courses = PRESENCIAL_COURSES_BY_CAMPUS[campusId] || [];
+    if (courses.length > 0) {
+      const firstCourse = courses[0];
+      setSelectedPCourseId(firstCourse.id);
+      updatePresencialDiscount(firstCourse, selectedPCampaign, hours);
+    }
+  };
 
   const selectedECourse = useMemo(() => 
     EAD_COURSES.find(c => c.id === selectedECourseId) || EAD_COURSES[0],
@@ -206,6 +235,36 @@ export default function App() {
               <div className="space-y-6">
                 {activeTab === 'presencial' ? (
                   <>
+                    {/* Custom Campus Selector (Neumorphic slider styling from Botoes2.png) */}
+                    <div className="space-y-3 mb-6">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <Users size={12} /> Campus
+                      </label>
+                      <div className="relative bg-[#181824] rounded-full p-2 shadow-inner border border-indigo-950/40 flex items-center justify-between select-none">
+                        {/* Background connecting line */}
+                        <div className="absolute left-[8%] right-[8%] h-[6px] bg-[#2a2a3b] rounded-full" />
+
+                        {CAMPUS_LIST.map((campus) => {
+                          const isSelected = campus.id === selectedCampus;
+                          return (
+                            <button
+                              key={campus.id}
+                              type="button"
+                              onClick={() => handleCampusChange(campus.id)}
+                              className={`relative z-10 w-11 h-11 rounded-full flex items-center justify-center font-black text-xs transition-all duration-300 cursor-pointer shadow-md focus:outline-none ${
+                                isSelected 
+                                  ? 'bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white ring-2 ring-violet-400/50 scale-110' 
+                                  : 'bg-[#252535] text-slate-400 hover:text-white border border-[#3b3b52]'
+                              }`}
+                              title={campus.fullName}
+                            >
+                              {campus.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <GraduationCap size={12} /> Escolha sua Graduação
@@ -215,17 +274,44 @@ export default function App() {
                         onChange={(e) => {
                           const newId = e.target.value;
                           setSelectedPCourseId(newId);
-                          const course = PRESENCIAL_COURSES.find(c => c.id === newId);
+                          const course = currentPresencialCourses.find(c => c.id === newId);
                           if (course) updatePresencialDiscount(course, selectedPCampaign, hours);
                         }}
                         className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
                       >
-                        {PRESENCIAL_COURSES.map(course => (
+                        {currentPresencialCourses.map(course => (
                           <option key={course.id} value={course.id} className="bg-indigo-800">
                             {course.name}
                           </option>
                         ))}
                       </select>
+                    </div>
+
+                    {/* Semester Selector (S1/S2) - Smaller version of campus selector */}
+                    <div className="space-y-2 mb-4">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <Clock size={12} /> Período
+                      </label>
+                      <div className="relative bg-[#1e1e2e] rounded-full p-1.5 shadow-inner border border-indigo-950/40 inline-flex items-center select-none">
+                        {['S1', 'S2'].map((sem) => {
+                          const isSelected = sem === selectedSemester;
+                          return (
+                            <button
+                              key={sem}
+                              type="button"
+                              onClick={() => setSelectedSemester(sem as 'S1' | 'S2')}
+                              className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${
+                                isSelected 
+                                  ? 'bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white ring-2 ring-violet-400/50 scale-110' 
+                                  : 'bg-[#2a2a3e] text-slate-400 hover:text-white border border-[#3b3b52]'
+                              }`}
+                              title={sem === 'S1' ? '1º Semestre' : '2º Semestre'}
+                            >
+                              {sem}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                     
                     <div className="space-y-4">
@@ -408,6 +494,11 @@ export default function App() {
               <h2 className="text-3xl lg:text-4xl font-black text-gray-900 leading-tight">
                 {activeTab === 'presencial' ? selectedPCourse.name : selectedECourse.name}
               </h2>
+              {activeTab === 'presencial' && (
+                <p className="text-indigo-600 font-black text-xs uppercase mt-2">
+                  Campus: {CAMPUS_LIST.find(c => c.id === selectedCampus)?.fullName} ({selectedCampus})
+                </p>
+              )}
               {activeTab === 'ead' && selectedECourse.notes && (
                 <p className="text-indigo-500 font-bold text-[10px] uppercase mt-2">{selectedECourse.notes}</p>
               )}
@@ -471,14 +562,177 @@ export default function App() {
             </div>
 
             <div className="mt-12 flex flex-col sm:flex-row gap-4">
-              <button className="flex-1 border-2 border-gray-200 text-gray-400 font-bold py-4 rounded-2xl hover:bg-gray-50 hover:text-gray-600 transition-all flex items-center justify-center gap-2">
+              <button 
+                onClick={() => setShowBudgetModal(true)}
+                className="flex-1 bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
+              >
                 <Download size={20} />
-                Exportar PDF
+                Criar Orçamento
               </button>
             </div>
           </div>
         </div>
       </motion.div>
+
+      {/* Budget Modal */}
+      <AnimatePresence>
+        {showBudgetModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setShowBudgetModal(false)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 lg:p-8 border-b border-gray-100">
+                <div>
+                  <h2 className="text-lg lg:text-xl font-black text-gray-900">
+                    ORÇAMENTO - SIMULAÇÃO COMERCIAL
+                  </h2>
+                </div>
+                <button 
+                  onClick={() => setShowBudgetModal(false)}
+                  className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 hover:text-gray-600 transition-all text-gray-400 flex-shrink-0"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              
+              {/* Content */}
+              <div className="p-6 lg:p-8 space-y-6">
+                {/* Course Info */}
+                <div className="bg-indigo-50 rounded-2xl p-5 space-y-3">
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Curso</span>
+                    <span className="text-gray-900 font-bold text-right">
+                      {activeTab === 'presencial' ? selectedPCourse.name : selectedECourse.name}
+                    </span>
+                  </div>
+                  {activeTab === 'presencial' && (
+                    <>
+                      <div className="flex justify-between items-center gap-4">
+                        <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Campus</span>
+                        <span className="text-gray-900 font-bold text-right">
+                          {CAMPUS_LIST.find(c => c.id === selectedCampus)?.fullName || selectedCampus} ({selectedCampus})
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center gap-4">
+                        <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Período</span>
+                        <span className="text-gray-900 font-bold text-right">{selectedSemester}</span>
+                      </div>
+                    </>
+                  )}
+                  {activeTab === 'presencial' && (
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Carga Horária Contratada</span>
+                      <span className="text-gray-900 font-bold text-right">{hours}h</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Financial Summary */}
+                <div>
+                  <h3 className="text-sm font-black text-gray-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <TrendingUp size={16} /> Resumo Financeiro
+                  </h3>
+                  <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+                    <div className="flex justify-between py-3 px-4">
+                      <span className="text-gray-500 font-medium">Valor Bruto Mensal</span>
+                      <span className="font-bold text-gray-900">
+                        {activeTab === 'presencial' ? formatCurrency(presencialResults.grossInstallment) : formatCurrency(eadResults.grossMonthly)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-3 px-4">
+                      <span className="text-gray-500 font-medium">Valor Total Bruto Semestral</span>
+                      <span className="font-bold text-gray-900">
+                        {activeTab === 'presencial' 
+                          ? formatCurrency(presencialResults.grossInstallment * pInstallments) 
+                          : formatCurrency(eadResults.grossMonthly * 6)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-3 px-4">
+                      <span className="text-gray-500 font-medium">Desconto Mensal</span>
+                      <span className="font-bold text-emerald-600">
+                        {activeTab === 'presencial' ? pDiscount : eDiscount}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-3 px-4">
+                      <span className="text-gray-500 font-medium">Abatimento Mensal</span>
+                      <span className="font-bold text-pink-600">
+                        -{activeTab === 'presencial' ? formatCurrency(presencialResults.discountPerInstallment) : formatCurrency(eadResults.discountAmountTotal)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment Conditions */}
+                <div>
+                  <h3 className="text-sm font-black text-gray-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <CreditCard size={16} /> Condições de Pagamento
+                  </h3>
+                  <div className="bg-gray-50 rounded-2xl p-5 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 font-medium">Total de Parcelas</span>
+                      <span className="font-bold text-gray-900">
+                        {(() => {
+                          const total = activeTab === 'presencial' ? pInstallments : eadResults.installmentsCount;
+                          return `${total < 10 ? `0${total}` : total} meses`;
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <div>
+                        <span className="text-gray-500 font-medium block">Valor com Desconto (Mensal)</span>
+                        <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
+                          {activeTab === 'presencial' 
+                            ? `Campanha: ${pCampaignLabels[selectedPCampaign]}` 
+                            : `Campanha: ${campaignLabels[selectedCampaign]}`}
+                        </span>
+                      </div>
+                      <span className="text-2xl lg:text-3xl font-black text-indigo-600">
+                        {activeTab === 'presencial' ? formatCurrency(presencialResults.installmentWithDiscount) : formatCurrency(eadResults.monthlyWithDiscount)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 font-medium">Forma de Pagamento</span>
+                      <span className="font-bold text-gray-900 flex items-center gap-2">
+                        <CreditCard size={16} className="text-indigo-400" />
+                        Boleto
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex flex-col sm:flex-row gap-3 p-6 lg:p-8 border-t border-gray-100 bg-gray-50/50">
+                <button 
+                  onClick={() => window.print()}
+                  className="flex-1 bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
+                >
+                  <Printer size={20} />
+                  Imprimir / Exportar PDF
+                </button>
+                <button 
+                  onClick={() => setShowBudgetModal(false)}
+                  className="flex-1 sm:flex-none border-2 border-gray-200 text-gray-500 font-bold py-4 px-8 rounded-2xl hover:bg-white hover:text-gray-700 hover:border-gray-300 transition-all"
+                >
+                  Fechar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
