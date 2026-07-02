@@ -11,11 +11,13 @@ import {
   Monitor,
   Users,
   X,
-  Printer
+  Printer,
+  Layers,
+  BookOpen
 } from 'lucide-react';
-import { PRESENCIAL_COURSES_BY_CAMPUS, EAD_COURSES, Course, EADCourse } from './constants/courses';
+import { PRESENCIAL_COURSES_BY_CAMPUS, EAD_COURSES, Course, EADCourse, TECNICO_COURSES, TecnicoCourse } from './constants/courses';
 
-type TabType = 'presencial' | 'ead';
+type TabType = 'presencial' | 'ead' | 'tecnicos';
 
 const CAMPUS_LIST = [
   { id: 'CX', label: 'CX', fullName: 'Caxias' },
@@ -26,6 +28,16 @@ const CAMPUS_LIST = [
 ] as const;
 
 type CampusId = typeof CAMPUS_LIST[number]['id'];
+
+const TECNICO_POLO_LIST = [
+  { id: 'BG', label: 'BG', fullName: 'Bento Gonçalves' },
+  { id: 'CX', label: 'CX', fullName: 'Caxias do Sul' },
+  { id: 'NH', label: 'NH', fullName: 'Novo Hamburgo' },
+] as const;
+
+type TecnicoPoloId = typeof TECNICO_POLO_LIST[number]['id'];
+
+const POLO_NAME_MAP: Record<string, string> = { 'BG': 'Bento Gonçalves', 'CX': 'Caxias do Sul', 'NH': 'Novo Hamburgo' };
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('presencial');
@@ -43,11 +55,62 @@ export default function App() {
   const [selectedPCampaign, setSelectedPCampaign] = useState<keyof Course['discounts']>('vestibular');
   const [selectedSemester, setSelectedSemester] = useState<'S1' | 'S2'>('S1');
   const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+
+  // Técnicos States
+  const [selectedTCourseId, setSelectedTCourseId] = useState<string>(TECNICO_COURSES[0].id);
+  const [selectedTPolo, setSelectedTPolo] = useState<TecnicoPoloId>('BG');
+  const [selectedTInstallments, setSelectedTInstallments] = useState<number>(12);
+  const [tDiscount, setTDiscount] = useState<number>(0);
+
+  const selectedTCourse = useMemo(() => 
+    TECNICO_COURSES.find(c => c.id === selectedTCourseId) || TECNICO_COURSES[0],
+    [selectedTCourseId]
+  );
+
+  // Get available polo options for the selected course
+  const availableTPolos = useMemo(() => {
+    return selectedTCourse.polos.map(p => p.polo);
+  }, [selectedTCourse]);
+
+  // Get installment options for selected course + polo
+  const currentTInstallmentOptions = useMemo(() => {
+    const poloData = selectedTCourse.polos.find(p => p.polo === POLO_NAME_MAP[selectedTPolo]);
+    return poloData?.options || [];
+  }, [selectedTCourse, selectedTPolo]);
+
+  // Make sure selected installment is valid for current options
+  const validTInstallments = useMemo(() => {
+    const available = currentTInstallmentOptions.map(o => o.parcelas);
+    if (available.length > 0 && !available.includes(selectedTInstallments)) {
+      return available[0];
+    }
+    return selectedTInstallments;
+  }, [currentTInstallmentOptions, selectedTInstallments]);
+
+  const tecnicosResults = useMemo(() => {
+    const option = currentTInstallmentOptions.find(o => o.parcelas === validTInstallments);
+    const baseInstallment = option?.valorParcela || 0;
+    const baseTotal = option?.valorTotal || 0;
+    const discountAmount = baseTotal * (tDiscount / 100);
+    const totalWithDiscount = baseTotal - discountAmount;
+    const installmentWithDiscount = totalWithDiscount / validTInstallments;
+    return {
+      installmentValue: baseInstallment,
+      totalValue: baseTotal,
+      installments: validTInstallments,
+      tDiscountPercent: tDiscount,
+      discountAmount,
+      totalWithDiscount,
+      installmentWithDiscount
+    };
+  }, [currentTInstallmentOptions, validTInstallments, tDiscount]);
 
   // EAD States
   const [selectedECourseId, setSelectedECourseId] = useState<string>(EAD_COURSES[0].id);
+  const [selectedPraca, setSelectedPraca] = useState<1 | 2 | 3>(1);
   const [selectedCampaign, setSelectedCampaign] = useState<keyof EADCourse['discounts']>('vestibular');
-  const [eDiscount, setEDiscount] = useState<number>(EAD_COURSES[0].discounts.vestibular);
+  const [eDiscount, setEDiscount] = useState<number>(EAD_COURSES[0].discounts.vestibular[0]);
 
   const selectedPCourse = useMemo(() => 
     currentPresencialCourses.find(c => c.id === selectedPCourseId) || currentPresencialCourses[0],
@@ -171,6 +234,90 @@ export default function App() {
     }
   };
 
+  const copyBudgetAsText = () => {
+    const line = '────────────────────────────';
+    const isPresencial = activeTab === 'presencial';
+    const isEad = activeTab === 'ead';
+    const isTecnicos = activeTab === 'tecnicos';
+    
+    let text = '';
+    text += `*ORÇAMENTO - SIMULAÇÃO COMERCIAL*\n`;
+    text += `${line}\n\n`;
+    
+    if (isTecnicos) {
+      text += `*Curso Técnico:* ${selectedTCourse.name}\n`;
+      text += `*Modalidade:* ${selectedTCourse.modalidade}\n`;
+      text += `*Polo:* ${TECNICO_POLO_LIST.find(p => p.id === selectedTPolo)?.fullName || selectedTPolo}\n`;
+      text += `*Carga Horária:* ${selectedTCourse.cargaHoraria}h\n`;
+    } else {
+      text += `*Curso:* ${isPresencial ? selectedPCourse.name : selectedECourse.name}\n`;
+      
+      if (isPresencial) {
+        const campus = CAMPUS_LIST.find(c => c.id === selectedCampus);
+        text += `*Campus:* ${campus?.fullName || selectedCampus} (${selectedCampus})\n`;
+        text += `*Período:* ${selectedSemester}\n`;
+        text += `*Carga Horária:* ${hours}h\n`;
+      } else {
+        text += `*Praça:* ${selectedPraca}\n`;
+      }
+    }
+    
+    text += `\n${line}\n`;
+    text += `*RESUMO FINANCEIRO*\n`;
+    text += `${line}\n\n`;
+    
+    if (isTecnicos) {
+      text += `Opção de Parcelamento: ${tecnicosResults.installments}x\n`;
+      text += `Valor da Parcela (Bruto): ${formatCurrency(tecnicosResults.installmentValue)}\n`;
+      if (tecnicosResults.tDiscountPercent > 0) {
+        text += `Desconto: ${tecnicosResults.tDiscountPercent}%\n`;
+        text += `Abatimento Total: -${formatCurrency(tecnicosResults.discountAmount)}\n`;
+        text += `*Valor com Desconto: ${formatCurrency(tecnicosResults.totalWithDiscount)}*\n`;
+        text += `Parcela com Desconto: ${formatCurrency(tecnicosResults.installmentWithDiscount)}\n`;
+      } else {
+        text += `*Valor Total: ${formatCurrency(tecnicosResults.totalValue)}*\n`;
+      }
+    } else if (isPresencial) {
+      text += `Valor Bruto Mensal: ${formatCurrency(presencialResults.grossInstallment)}\n`;
+      text += `Total Bruto Semestral: ${formatCurrency(presencialResults.grossInstallment * pInstallments)}\n`;
+      text += `Desconto: ${pDiscount}%\n`;
+      text += `Abatimento Mensal: -${formatCurrency(presencialResults.discountPerInstallment)}\n`;
+      text += `Campanha: ${pCampaignLabels[selectedPCampaign]}\n`;
+    } else {
+      text += `Valor Bruto Mensal: ${formatCurrency(eadResults.grossMonthly)}\n`;
+      text += `Total Bruto Semestral: ${formatCurrency(eadResults.grossMonthly * 6)}\n`;
+      text += `Desconto: ${eDiscount}%\n`;
+      text += `Abatimento Mensal: -${formatCurrency(eadResults.discountAmountTotal)}\n`;
+      text += `Campanha: ${campaignLabels[selectedCampaign]}\n`;
+    }
+    
+    text += `\n${line}\n`;
+    text += `*CONDIÇÕES DE PAGAMENTO*\n`;
+    text += `${line}\n\n`;
+    
+    if (isTecnicos) {
+      text += `Total de Parcelas: ${tecnicosResults.installments < 10 ? `0${tecnicosResults.installments}` : tecnicosResults.installments}x\n`;
+      text += `*Valor da Parcela: ${formatCurrency(tecnicosResults.installmentValue)}*\n`;
+      text += `Forma de Pagamento: Boleto\n`;
+    } else {
+      const totalParcelas = isPresencial ? pInstallments : eadResults.installmentsCount;
+      text += `Total de Parcelas: ${totalParcelas < 10 ? `0${totalParcelas}` : totalParcelas} meses\n`;
+      text += `*Valor com Desconto: ${isPresencial ? formatCurrency(presencialResults.installmentWithDiscount) : formatCurrency(eadResults.monthlyWithDiscount)}*\n`;
+      text += `Forma de Pagamento: Boleto\n`;
+    }
+    
+    text += `\n${line}\n`;
+    text += `Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}\n`;
+    text += `FTEC Faculdades\n`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedToClipboard(true);
+      setTimeout(() => setCopiedToClipboard(false), 2500);
+    }).catch(() => {
+      alert('Não foi possível copiar o texto. Verifique as permissões da área de transferência.');
+    });
+  };
+
   const campaignLabels: Record<keyof EADCourse['discounts'], string> = {
     vestibular: 'Vestibular com Bolsa',
     transferencia: 'Diplo / Transf / Reing',
@@ -204,6 +351,14 @@ export default function App() {
           >
             <Monitor size={20} /> EAD / SEMI
           </button>
+          <button 
+            onClick={() => setActiveTab('tecnicos')}
+            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-3xl font-black transition-all ${
+              activeTab === 'tecnicos' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-transparent text-gray-400 hover:bg-gray-200'
+            }`}
+          >
+            <BookOpen size={20} /> TÉCNICOS
+          </button>
         </div>
 
         <div className="flex flex-col md:flex-row flex-1">
@@ -224,12 +379,14 @@ export default function App() {
                 />
               </div>
               <h1 className="text-3xl lg:text-4xl font-black text-white leading-tight mb-2">
-                {activeTab === 'presencial' ? 'Orçamento Presencial' : 'Orçamento EAD'}
+                {activeTab === 'presencial' ? 'Orçamento Presencial' : activeTab === 'ead' ? 'Orçamento EAD' : 'Orçamento Técnicos'}
               </h1>
               <p className="text-indigo-100 text-base lg:text-lg mb-8 opacity-80">
                 {activeTab === 'presencial' 
                   ? 'Planeje seu próximo semestre presencial com precisão.' 
-                  : 'Simule sua mensalidade para cursos EAD e Semipresenciais.'}
+                  : activeTab === 'ead'
+                  ? 'Simule sua mensalidade para cursos EAD e Semipresenciais.'
+                  : 'Simule o investimento para cursos técnicos.'}
               </p>
               
               <div className="space-y-6">
@@ -240,10 +397,7 @@ export default function App() {
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <Users size={12} /> Campus
                       </label>
-                      <div className="relative bg-[#181824] rounded-full p-2 shadow-inner border border-indigo-950/40 flex items-center justify-between select-none">
-                        {/* Background connecting line */}
-                        <div className="absolute left-[8%] right-[8%] h-[6px] bg-[#2a2a3b] rounded-full" />
-
+                      <div className="flex items-center gap-2 select-none w-full">
                         {CAMPUS_LIST.map((campus) => {
                           const isSelected = campus.id === selectedCampus;
                           return (
@@ -251,14 +405,13 @@ export default function App() {
                               key={campus.id}
                               type="button"
                               onClick={() => handleCampusChange(campus.id)}
-                              className={`relative z-10 w-11 h-11 rounded-full flex items-center justify-center font-black text-xs transition-all duration-300 cursor-pointer shadow-md focus:outline-none ${
-                                isSelected 
-                                  ? 'bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white ring-2 ring-violet-400/50 scale-110' 
-                                  : 'bg-[#252535] text-slate-400 hover:text-white border border-[#3b3b52]'
-                              }`}
+                              className="flex-1 h-11 rounded-full flex items-center justify-center gap-1.5 font-black text-xs transition-all duration-300 cursor-pointer shadow-md focus:outline-none bg-[#4F39F6] text-white hover:brightness-110"
                               title={campus.fullName}
                             >
-                              {campus.label}
+                              <div className="w-3.5 h-3.5 flex-shrink-0 rounded-full border-2 border-white flex items-center justify-center">
+                                <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSelected ? 'bg-[#A432FE]' : 'bg-transparent'}`} />
+                              </div>
+                              <span>{campus.label}</span>
                             </button>
                           );
                         })}
@@ -287,12 +440,12 @@ export default function App() {
                       </select>
                     </div>
 
-                    {/* Semester Selector (S1/S2) - Smaller version of campus selector */}
+                    {/* Semester Selector (S1/S2) */}
                     <div className="space-y-2 mb-4">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <Clock size={12} /> Período
                       </label>
-                      <div className="relative bg-[#1e1e2e] rounded-full p-1.5 shadow-inner border border-indigo-950/40 inline-flex items-center select-none">
+                      <div className="flex items-center gap-2 select-none">
                         {['S1', 'S2'].map((sem) => {
                           const isSelected = sem === selectedSemester;
                           return (
@@ -300,14 +453,13 @@ export default function App() {
                               key={sem}
                               type="button"
                               onClick={() => setSelectedSemester(sem as 'S1' | 'S2')}
-                              className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${
-                                isSelected 
-                                  ? 'bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white ring-2 ring-violet-400/50 scale-110' 
-                                  : 'bg-[#2a2a3e] text-slate-400 hover:text-white border border-[#3b3b52]'
-                              }`}
+                              className="h-8 px-4 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none bg-[#4F39F6] text-white hover:brightness-110"
                               title={sem === 'S1' ? '1º Semestre' : '2º Semestre'}
                             >
-                              {sem}
+                              <div className="w-2.5 h-2.5 flex-shrink-0 rounded-full border-[1.5px] border-white flex items-center justify-center">
+                                <div className={`w-1 h-1 rounded-full transition-colors ${isSelected ? 'bg-[#A432FE]' : 'bg-transparent'}`} />
+                              </div>
+                              <span>{sem}</span>
                             </button>
                           );
                         })}
@@ -413,8 +565,37 @@ export default function App() {
                       </div>
                     </div>
                   </>
-                ) : (
+                ) : activeTab === 'ead' ? (
                   <>
+                    {/* Praça Selector - same style as Campus buttons */}
+                    <div className="space-y-3 mb-6">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <Layers size={12} /> Praça
+                      </label>
+                      <div className="flex items-center gap-2 select-none w-full">
+                        {[1, 2, 3].map((praca) => {
+                          const isSelected = praca === selectedPraca;
+                          return (
+                            <button
+                              key={praca}
+                              type="button"
+                              onClick={() => {
+                                setSelectedPraca(praca as 1 | 2 | 3);
+                                setEDiscount(selectedECourse.discounts[selectedCampaign][praca - 1]);
+                              }}
+                              className="flex-1 h-11 rounded-full flex items-center justify-center gap-1.5 font-black text-xs transition-all duration-300 cursor-pointer shadow-md focus:outline-none bg-[#4F39F6] text-white hover:brightness-110"
+                              title={`Praça ${praca}`}
+                            >
+                              <div className="w-3.5 h-3.5 flex-shrink-0 rounded-full border-2 border-white flex items-center justify-center">
+                                <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSelected ? 'bg-[#A432FE]' : 'bg-transparent'}`} />
+                              </div>
+                              <span>Praça {praca}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <GraduationCap size={12} /> Escolha sua Graduação EAD
@@ -425,7 +606,7 @@ export default function App() {
                           const newId = e.target.value;
                           setSelectedECourseId(newId);
                           const course = EAD_COURSES.find(c => c.id === newId);
-                          if (course) setEDiscount(course.discounts[selectedCampaign]);
+                          if (course) setEDiscount(course.discounts[selectedCampaign][selectedPraca - 1]);
                         }}
                         className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
                       >
@@ -447,7 +628,7 @@ export default function App() {
                           onChange={(e) => {
                             const campaign = e.target.value as keyof EADCourse['discounts'];
                             setSelectedCampaign(campaign);
-                            setEDiscount(selectedECourse.discounts[campaign]);
+                            setEDiscount(selectedECourse.discounts[campaign][selectedPraca - 1]);
                           }}
                           className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
                         >
@@ -461,7 +642,7 @@ export default function App() {
 
                       <div className="bg-indigo-400/30 border border-indigo-400 rounded-2xl p-4 flex justify-between items-center">
                         <span className="text-[10px] font-black text-indigo-100 uppercase tracking-widest">Percentual de Tabela</span>
-                        <span className="text-2xl font-black text-white">{selectedECourse.discounts[selectedCampaign]}%</span>
+                        <span className="text-2xl font-black text-white">{selectedECourse.discounts[selectedCampaign][selectedPraca - 1]}%</span>
                       </div>
 
                       <div className="space-y-2">
@@ -482,6 +663,134 @@ export default function App() {
                       </div>
                     </div>
                   </>
+                ) : (
+                  <>
+                    {/* Polo Selector */}
+                    <div className="space-y-3 mb-6">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <Users size={12} /> Polo
+                      </label>
+                      <div className="flex items-center gap-2 select-none w-full">
+                        {TECNICO_POLO_LIST.map((polo) => {
+                          const isSelected = polo.id === selectedTPolo;
+                          const hasPolo = selectedTCourse.polos.some(p => p.polo === POLO_NAME_MAP[polo.id]);
+                          return (
+                            <button
+                              key={polo.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedTPolo(polo.id as TecnicoPoloId);
+                                const poloData = selectedTCourse.polos.find(p => p.polo === POLO_NAME_MAP[polo.id]);
+                                if (poloData && poloData.options.length > 0) {
+                                  setSelectedTInstallments(poloData.options[0].parcelas);
+                                }
+                              }}
+                              className={`flex-1 h-8 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${
+                                isSelected 
+                                  ? 'bg-[#4F39F6] text-white' 
+                                  : hasPolo
+                                    ? 'bg-[#2a2a3e] text-slate-300 hover:text-white border border-[#3b3b52]'
+                                    : 'bg-[#4F39F6] opacity-30 cursor-not-allowed border border-[#3b3b52]'
+                              }`}
+                              title={polo.fullName}
+                            >
+                              <div className="w-2.5 h-2.5 flex-shrink-0 rounded-full border-[1.5px] border-white flex items-center justify-center">
+                                <div className={`w-1 h-1 rounded-full transition-colors ${isSelected ? 'bg-[#A432FE]' : 'bg-transparent'}`} />
+                              </div>
+                              <span>{polo.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {!availableTPolos.some(p => p === POLO_NAME_MAP[selectedTPolo]) && (
+                        <p className="text-[9px] text-indigo-200 opacity-60 mt-1 ml-1">
+                          {selectedTCourse.observacoes || 'Selecione outro polo'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <GraduationCap size={12} /> Escolha o Curso Técnico
+                      </label>
+                      <select 
+                        value={selectedTCourseId}
+                        onChange={(e) => {
+                          const newId = e.target.value;
+                          setSelectedTCourseId(newId);
+                          const course = TECNICO_COURSES.find(c => c.id === newId);
+                          if (course) {
+                            // Keep current polo if available, otherwise use first
+                            const hasCurrentPolo = course.polos.some(p => p.polo === POLO_NAME_MAP[selectedTPolo]);
+                            if (!hasCurrentPolo && course.polos.length > 0) {
+                              const firstPoloName = course.polos[0].polo;
+                              const poloEntry = Object.entries(POLO_NAME_MAP).find(([, v]) => v === firstPoloName);
+                              if (poloEntry) {
+                                setSelectedTPolo(poloEntry[0] as TecnicoPoloId);
+                                if (course.polos[0].options.length > 0) {
+                                  setSelectedTInstallments(course.polos[0].options[0].parcelas);
+                                }
+                              }
+                            }
+                          }
+                        }}
+                        className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
+                      >
+                        {TECNICO_COURSES.map(course => (
+                          <option key={course.id} value={course.id} className="bg-indigo-800">
+                            {course.name} - {course.modalidade}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedTCourse.observacoes && (
+                        <p className="text-[10px] font-bold text-amber-300 mt-1 ml-1">
+                          {selectedTCourse.observacoes}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <Percent size={12} /> Desconto (%) Manual
+                      </label>
+                      <input 
+                        type="number" 
+                        value={tDiscount}
+                        min="0"
+                        max="100"
+                        step="1"
+                        onChange={(e) => setTDiscount(Number(e.target.value))}
+                        className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 text-sm font-bold"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <CreditCard size={12} /> Parcelamento
+                      </label>
+                      {currentTInstallmentOptions.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-2">
+                          {currentTInstallmentOptions.map(opt => (
+                            <button
+                              key={opt.parcelas}
+                              onClick={() => setSelectedTInstallments(opt.parcelas)}
+                              className={`rounded-xl py-2.5 font-bold text-xs transition-all border-2 ${
+                                selectedTInstallments === opt.parcelas
+                                ? 'bg-pink-500 text-white border-pink-400 shadow-md' 
+                                : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                              }`}
+                            >
+                              {opt.parcelas}x
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-indigo-200 opacity-60">
+                          Nenhuma opção de parcelamento disponível para este polo.
+                        </p>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -492,7 +801,7 @@ export default function App() {
             <div className="mb-12">
               <p className="text-gray-400 font-bold uppercase tracking-tight text-xs mb-1">Resumo da Simulação</p>
               <h2 className="text-3xl lg:text-4xl font-black text-gray-900 leading-tight">
-                {activeTab === 'presencial' ? selectedPCourse.name : selectedECourse.name}
+                {activeTab === 'presencial' ? selectedPCourse.name : activeTab === 'ead' ? selectedECourse.name : selectedTCourse.name}
               </h2>
               {activeTab === 'presencial' && (
                 <p className="text-indigo-600 font-black text-xs uppercase mt-2">
@@ -502,64 +811,135 @@ export default function App() {
               {activeTab === 'ead' && selectedECourse.notes && (
                 <p className="text-indigo-500 font-bold text-[10px] uppercase mt-2">{selectedECourse.notes}</p>
               )}
+              {activeTab === 'tecnicos' && (
+                <p className="text-indigo-600 font-black text-xs uppercase mt-2">
+                  {selectedTCourse.modalidade} | Polo: {(() => {
+                    const poloInfo = TECNICO_POLO_LIST.find(p => p.id === selectedTPolo);
+                    return poloInfo?.fullName || selectedTPolo;
+                  })()} | {selectedTCourse.cargaHoraria}h
+                </p>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-              <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
-                <p className="text-gray-500 font-medium text-sm mb-1 uppercase tracking-wide">Total de Parcelas</p>
-                <p className="text-2xl lg:text-3xl font-black text-gray-900">
-                  {activeTab === 'presencial' 
-                    ? (pInstallments < 10 ? `0${pInstallments}` : pInstallments)
-                    : (eadResults.installmentsCount < 10 ? `0${eadResults.installmentsCount}` : eadResults.installmentsCount)
-                  } meses
-                </p>
-              </div>
-              <div className="p-6 bg-pink-50 rounded-3xl border border-pink-100">
-                <p className="text-pink-600 font-medium text-sm mb-1 uppercase tracking-wide">Desconto Total</p>
-                <p className="text-2xl lg:text-3xl font-black text-pink-600">
-                  {activeTab === 'presencial' ? formatCurrency(presencialResults.discountAmountTotal) : formatCurrency(eadResults.discountAmountTotal)}
-                </p>
-              </div>
-            </div>
+            {activeTab === 'tecnicos' ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+                  <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
+                    <p className="text-gray-500 font-medium text-sm mb-1 uppercase tracking-wide">Parcelas</p>
+                    <p className="text-2xl lg:text-3xl font-black text-gray-900">
+                      {tecnicosResults.installments < 10 ? `0${tecnicosResults.installments}` : tecnicosResults.installments}x
+                    </p>
+                  </div>
+                  <div className="p-6 bg-indigo-50 rounded-3xl border border-indigo-100">
+                    <p className="text-indigo-600 font-medium text-sm mb-1 uppercase tracking-wide">Valor Total</p>
+                    <p className="text-2xl lg:text-3xl font-black text-indigo-600">
+                      {formatCurrency(tecnicosResults.totalValue)}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="space-y-4 border-t-2 border-dashed border-gray-200 pt-8">
-              <div className="flex justify-between items-center group">
-                <span className="text-gray-500 font-medium text-lg">Valor Bruto Mensal</span>
-                <span className="text-gray-900 font-bold text-xl">
-                  {activeTab === 'presencial' ? formatCurrency(presencialResults.grossInstallment) : formatCurrency(eadResults.grossMonthly)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center group">
-                <span className="text-gray-500 font-medium text-lg">Abatimento Mensal</span>
-                <span className="text-pink-500 font-bold text-xl text-right">
-                  -{activeTab === 'presencial' ? formatCurrency(presencialResults.discountPerInstallment) : formatCurrency(eadResults.discountAmountTotal)}
-                </span>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row justify-between sm:items-end pt-6 gap-6">
-                <div>
-                  <span className="text-indigo-600 font-black text-sm uppercase tracking-widest flex items-center gap-2">
-                    <TrendingUp size={14} /> Valor com Desconto
-                  </span>
-                  <AnimatePresence mode="wait">
-                    <motion.div 
-                      key={activeTab === 'presencial' ? presencialResults.installmentWithDiscount : eadResults.monthlyWithDiscount}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-5xl lg:text-6xl font-black text-indigo-600 tracking-tighter"
-                    >
-                      {activeTab === 'presencial' ? formatCurrency(presencialResults.installmentWithDiscount) : formatCurrency(eadResults.monthlyWithDiscount)}
-                    </motion.div>
-                  </AnimatePresence>
+                <div className="space-y-4 border-t-2 border-dashed border-gray-200 pt-8">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 font-medium text-lg">Valor da Parcela (Bruto)</span>
+                    <span className="text-gray-900 font-bold text-xl">
+                      {formatCurrency(tecnicosResults.installmentValue)}
+                    </span>
+                  </div>
+                  {tecnicosResults.tDiscountPercent > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 font-medium text-lg">Desconto ({tecnicosResults.tDiscountPercent}%)</span>
+                      <span className="text-emerald-600 font-bold text-xl">
+                        -{formatCurrency(tecnicosResults.discountAmount)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-end pt-6 gap-6">
+                    <div>
+                      <span className="text-indigo-600 font-black text-sm uppercase tracking-widest flex items-center gap-2">
+                        <TrendingUp size={14} /> {tecnicosResults.tDiscountPercent > 0 ? 'Valor com Desconto' : 'Investimento Total'}
+                      </span>
+                      <motion.div 
+                        key={tecnicosResults.tDiscountPercent > 0 ? tecnicosResults.totalWithDiscount : tecnicosResults.totalValue}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-5xl lg:text-6xl font-black text-indigo-600 tracking-tighter"
+                      >
+                        {tecnicosResults.tDiscountPercent > 0 ? formatCurrency(tecnicosResults.totalWithDiscount) : formatCurrency(tecnicosResults.totalValue)}
+                      </motion.div>
+                      {tecnicosResults.tDiscountPercent > 0 && (
+                        <p className="text-gray-400 text-xs mt-1">
+                          {tecnicosResults.installments}x de {formatCurrency(tecnicosResults.installmentWithDiscount)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="sm:text-right bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                      <p className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest">Carga Horária</p>
+                      <p className="text-indigo-900 font-black text-xl">{selectedTCourse.cargaHoraria}h</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="sm:text-right bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
-                  <p className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest">Total Semestral</p>
-                  <p className="text-indigo-900 font-black text-xl">
-                    {activeTab === 'presencial' ? formatCurrency(presencialResults.totalWithDiscount) : formatCurrency(eadResults.totalSemestral)}
-                  </p>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+                  <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
+                    <p className="text-gray-500 font-medium text-sm mb-1 uppercase tracking-wide">Total de Parcelas</p>
+                    <p className="text-2xl lg:text-3xl font-black text-gray-900">
+                      {activeTab === 'presencial' 
+                        ? (pInstallments < 10 ? `0${pInstallments}` : pInstallments)
+                        : (eadResults.installmentsCount < 10 ? `0${eadResults.installmentsCount}` : eadResults.installmentsCount)
+                      } meses
+                    </p>
+                  </div>
+                  <div className="p-6 bg-pink-50 rounded-3xl border border-pink-100">
+                    <p className="text-pink-600 font-medium text-sm mb-1 uppercase tracking-wide">Desconto Total</p>
+                    <p className="text-2xl lg:text-3xl font-black text-pink-600">
+                      {activeTab === 'presencial' ? formatCurrency(presencialResults.discountAmountTotal) : formatCurrency(eadResults.discountAmountTotal)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
+
+                <div className="space-y-4 border-t-2 border-dashed border-gray-200 pt-8">
+                  <div className="flex justify-between items-center group">
+                    <span className="text-gray-500 font-medium text-lg">Valor Bruto Mensal</span>
+                    <span className="text-gray-900 font-bold text-xl">
+                      {activeTab === 'presencial' ? formatCurrency(presencialResults.grossInstallment) : formatCurrency(eadResults.grossMonthly)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center group">
+                    <span className="text-gray-500 font-medium text-lg">Abatimento Mensal</span>
+                    <span className="text-pink-500 font-bold text-xl text-right">
+                      -{activeTab === 'presencial' ? formatCurrency(presencialResults.discountPerInstallment) : formatCurrency(eadResults.discountAmountTotal)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-end pt-6 gap-6">
+                    <div>
+                      <span className="text-indigo-600 font-black text-sm uppercase tracking-widest flex items-center gap-2">
+                        <TrendingUp size={14} /> Valor com Desconto
+                      </span>
+                      <AnimatePresence mode="wait">
+                        <motion.div 
+                          key={activeTab === 'presencial' ? presencialResults.installmentWithDiscount : eadResults.monthlyWithDiscount}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-5xl lg:text-6xl font-black text-indigo-600 tracking-tighter"
+                        >
+                          {activeTab === 'presencial' ? formatCurrency(presencialResults.installmentWithDiscount) : formatCurrency(eadResults.monthlyWithDiscount)}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+                    <div className="sm:text-right bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                      <p className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest">Total Semestral</p>
+                      <p className="text-indigo-900 font-black text-xl">
+                        {activeTab === 'presencial' ? formatCurrency(presencialResults.totalWithDiscount) : formatCurrency(eadResults.totalSemestral)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             <div className="mt-12 flex flex-col sm:flex-row gap-4">
               <button 
@@ -614,7 +994,7 @@ export default function App() {
                   <div className="flex justify-between items-start gap-4">
                     <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Curso</span>
                     <span className="text-gray-900 font-bold text-right">
-                      {activeTab === 'presencial' ? selectedPCourse.name : selectedECourse.name}
+                      {activeTab === 'presencial' ? selectedPCourse.name : activeTab === 'ead' ? selectedECourse.name : selectedTCourse.name}
                     </span>
                   </div>
                   {activeTab === 'presencial' && (
@@ -631,6 +1011,36 @@ export default function App() {
                       </div>
                     </>
                   )}
+                  {activeTab === 'ead' && (
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Praça</span>
+                      <span className="text-gray-900 font-bold text-right">{selectedPraca}</span>
+                    </div>
+                  )}
+                  {activeTab === 'tecnicos' && (
+                    <>
+                      <div className="flex justify-between items-center gap-4">
+                        <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Modalidade</span>
+                        <span className="text-gray-900 font-bold text-right">{selectedTCourse.modalidade}</span>
+                      </div>
+                      <div className="flex justify-between items-center gap-4">
+                        <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Polo</span>
+                        <span className="text-gray-900 font-bold text-right">
+                          {TECNICO_POLO_LIST.find(p => p.id === selectedTPolo)?.fullName || selectedTPolo}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center gap-4">
+                        <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Carga Horária</span>
+                        <span className="text-gray-900 font-bold text-right">{selectedTCourse.cargaHoraria}h</span>
+                      </div>
+                      {selectedTCourse.observacoes && (
+                        <div className="flex justify-between items-center gap-4">
+                          <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Observações</span>
+                          <span className="text-amber-600 font-bold text-right text-xs">{selectedTCourse.observacoes}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                   {activeTab === 'presencial' && (
                     <div className="flex justify-between items-center gap-4">
                       <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Carga Horária Contratada</span>
@@ -645,32 +1055,61 @@ export default function App() {
                     <TrendingUp size={16} /> Resumo Financeiro
                   </h3>
                   <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
-                    <div className="flex justify-between py-3 px-4">
-                      <span className="text-gray-500 font-medium">Valor Bruto Mensal</span>
-                      <span className="font-bold text-gray-900">
-                        {activeTab === 'presencial' ? formatCurrency(presencialResults.grossInstallment) : formatCurrency(eadResults.grossMonthly)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-3 px-4">
-                      <span className="text-gray-500 font-medium">Valor Total Bruto Semestral</span>
-                      <span className="font-bold text-gray-900">
-                        {activeTab === 'presencial' 
-                          ? formatCurrency(presencialResults.grossInstallment * pInstallments) 
-                          : formatCurrency(eadResults.grossMonthly * 6)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-3 px-4">
-                      <span className="text-gray-500 font-medium">Desconto Mensal</span>
-                      <span className="font-bold text-emerald-600">
-                        {activeTab === 'presencial' ? pDiscount : eDiscount}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-3 px-4">
-                      <span className="text-gray-500 font-medium">Abatimento Mensal</span>
-                      <span className="font-bold text-pink-600">
-                        -{activeTab === 'presencial' ? formatCurrency(presencialResults.discountPerInstallment) : formatCurrency(eadResults.discountAmountTotal)}
-                      </span>
-                    </div>
+                    {activeTab === 'tecnicos' ? (
+                      <>
+                        <div className="flex justify-between py-3 px-4">
+                          <span className="text-gray-500 font-medium">Valor da Parcela (Bruto)</span>
+                          <span className="font-bold text-gray-900">{formatCurrency(tecnicosResults.installmentValue)}</span>
+                        </div>
+                        <div className="flex justify-between py-3 px-4">
+                          <span className="text-gray-500 font-medium">Quantidade de Parcelas</span>
+                          <span className="font-bold text-gray-900">{tecnicosResults.installments}x</span>
+                        </div>
+                        <div className="flex justify-between py-3 px-4">
+                          <span className="text-gray-500 font-medium">Valor Total Bruto</span>
+                          <span className="font-bold text-gray-900">{formatCurrency(tecnicosResults.totalValue)}</span>
+                        </div>
+                        {tecnicosResults.tDiscountPercent > 0 && (
+                          <div className="flex justify-between py-3 px-4">
+                            <span className="text-gray-500 font-medium">Desconto ({tecnicosResults.tDiscountPercent}%)</span>
+                            <span className="font-bold text-emerald-600">-{formatCurrency(tecnicosResults.discountAmount)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between py-3 px-4 bg-emerald-50 rounded-xl -mx-1 px-5">
+                          <span className="text-emerald-700 font-bold">Valor Total com Desconto</span>
+                          <span className="font-bold text-emerald-700">{formatCurrency(tecnicosResults.totalWithDiscount)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between py-3 px-4">
+                          <span className="text-gray-500 font-medium">Valor Bruto Mensal</span>
+                          <span className="font-bold text-gray-900">
+                            {activeTab === 'presencial' ? formatCurrency(presencialResults.grossInstallment) : formatCurrency(eadResults.grossMonthly)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-3 px-4">
+                          <span className="text-gray-500 font-medium">Valor Total Bruto Semestral</span>
+                          <span className="font-bold text-gray-900">
+                            {activeTab === 'presencial' 
+                              ? formatCurrency(presencialResults.grossInstallment * pInstallments) 
+                              : formatCurrency(eadResults.grossMonthly * 6)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-3 px-4">
+                          <span className="text-gray-500 font-medium">Desconto Mensal</span>
+                          <span className="font-bold text-emerald-600">
+                            {activeTab === 'presencial' ? pDiscount : eDiscount}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-3 px-4">
+                          <span className="text-gray-500 font-medium">Abatimento Mensal</span>
+                          <span className="font-bold text-pink-600">
+                            -{activeTab === 'presencial' ? formatCurrency(presencialResults.discountPerInstallment) : formatCurrency(eadResults.discountAmountTotal)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -680,35 +1119,81 @@ export default function App() {
                     <CreditCard size={16} /> Condições de Pagamento
                   </h3>
                   <div className="bg-gray-50 rounded-2xl p-5 space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-500 font-medium">Total de Parcelas</span>
-                      <span className="font-bold text-gray-900">
-                        {(() => {
-                          const total = activeTab === 'presencial' ? pInstallments : eadResults.installmentsCount;
-                          return `${total < 10 ? `0${total}` : total} meses`;
-                        })()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                      <div>
-                        <span className="text-gray-500 font-medium block">Valor com Desconto (Mensal)</span>
-                        <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
-                          {activeTab === 'presencial' 
-                            ? `Campanha: ${pCampaignLabels[selectedPCampaign]}` 
-                            : `Campanha: ${campaignLabels[selectedCampaign]}`}
-                        </span>
-                      </div>
-                      <span className="text-2xl lg:text-3xl font-black text-indigo-600">
-                        {activeTab === 'presencial' ? formatCurrency(presencialResults.installmentWithDiscount) : formatCurrency(eadResults.monthlyWithDiscount)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-500 font-medium">Forma de Pagamento</span>
-                      <span className="font-bold text-gray-900 flex items-center gap-2">
-                        <CreditCard size={16} className="text-indigo-400" />
-                        Boleto
-                      </span>
-                    </div>
+                    {activeTab === 'tecnicos' ? (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium">Opção de Parcelamento</span>
+                          <span className="font-bold text-gray-900">{tecnicosResults.installments}x</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                          <div>
+                            <span className="text-gray-500 font-medium block">Valor da Parcela (Bruto)</span>
+                            <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
+                              {selectedTCourse.modalidade} | {selectedTCourse.cargaHoraria}h
+                            </span>
+                          </div>
+                          <span className="font-bold text-gray-900">{formatCurrency(tecnicosResults.installmentValue)}</span>
+                        </div>
+                        {tecnicosResults.tDiscountPercent > 0 && (
+                          <>
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500 font-medium">Desconto ({tecnicosResults.tDiscountPercent}%)</span>
+                              <span className="font-bold text-emerald-600">-{formatCurrency(tecnicosResults.discountAmount)}</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                              <div>
+                                <span className="text-gray-500 font-medium block">Valor da Parcela com Desconto</span>
+                                <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
+                                  Economia de {formatCurrency(tecnicosResults.discountAmount)}
+                                </span>
+                              </div>
+                              <span className="text-2xl lg:text-3xl font-black text-indigo-600">
+                                {formatCurrency(tecnicosResults.installmentWithDiscount)}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium">Forma de Pagamento</span>
+                          <span className="font-bold text-gray-900 flex items-center gap-2">
+                            <CreditCard size={16} className="text-indigo-400" />
+                            Boleto
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium">Total de Parcelas</span>
+                          <span className="font-bold text-gray-900">
+                            {(() => {
+                              const total = activeTab === 'presencial' ? pInstallments : eadResults.installmentsCount;
+                              return `${total < 10 ? `0${total}` : total} meses`;
+                            })()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                          <div>
+                            <span className="text-gray-500 font-medium block">Valor com Desconto (Mensal)</span>
+                            <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
+                              {activeTab === 'presencial' 
+                                ? `Campanha: ${pCampaignLabels[selectedPCampaign]}` 
+                                : `Campanha: ${campaignLabels[selectedCampaign]}`}
+                            </span>
+                          </div>
+                          <span className="text-2xl lg:text-3xl font-black text-indigo-600">
+                            {activeTab === 'presencial' ? formatCurrency(presencialResults.installmentWithDiscount) : formatCurrency(eadResults.monthlyWithDiscount)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium">Forma de Pagamento</span>
+                          <span className="font-bold text-gray-900 flex items-center gap-2">
+                            <CreditCard size={16} className="text-indigo-400" />
+                            Boleto
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -721,6 +1206,15 @@ export default function App() {
                 >
                   <Printer size={20} />
                   Imprimir / Exportar PDF
+                </button>
+                <button 
+                  onClick={copyBudgetAsText}
+                  className="flex-1 bg-emerald-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  {copiedToClipboard ? 'Copiado! ✓' : 'Copiar TXT (WhatsApp)'}
                 </button>
                 <button 
                   onClick={() => setShowBudgetModal(false)}
