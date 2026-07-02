@@ -104,6 +104,7 @@ export const POA_COURSES: Course[] = [
   { id: 'ads', name: 'Análise e Desenvolvimento de Sistemas', creditValue: 1265.23, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [50, 60], convenio: 60, imperdivel: { value: 749, installments: 42 } } },
   { id: 'arquitetura', name: 'Arquitetura e Urbanismo', creditValue: 1477.45, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [50, 60], convenio: 60, imperdivel: { value: 699, installments: 72 } } },
   { id: 'direito', name: 'Direito', creditValue: 1447.82, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [50, 60], convenio: 60 } },
+  { id: 'enfermagem', name: 'Enfermagem', creditValue: 892.70, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 40, imperdivel: { value: 745.92, installments: 72 } } },
   { id: 'engenharia-civil', name: 'Engenharia Civil', creditValue: 1477.45, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [50, 60], convenio: 60, imperdivel: { value: 799, installments: 72 } } },
   { id: 'engenharia-computacao', name: 'Engenharia da Computação', creditValue: 1477.45, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [50, 60], convenio: 60, imperdivel: { value: 799, installments: 72 } } },
   { id: 'engenharia-eletrica', name: 'Engenharia Elétrica', creditValue: 1477.45, discounts: { vestibular: [50, 65], transferencia: [55, 70], seJoga: [50, 60], convenio: 60, imperdivel: { value: 799, installments: 72 } } },
