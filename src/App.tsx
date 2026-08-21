@@ -52,7 +52,8 @@ export default function App() {
   const [hours, setHours] = useState<number>(360);
   const [pDiscount, setPDiscount] = useState<number>(0);
   const [pInstallments, setPInstallments] = useState<number>(6);
-  const [selectedPCampaign, setSelectedPCampaign] = useState<keyof Course['discounts']>('vestibular');
+  const [selectedPCampaign, setSelectedPCampaign] = useState<keyof Course['discounts'] | 'finalDeCiclo'>('vestibular');
+  const [finalDeCicloMode, setFinalDeCicloMode] = useState<'vestibular' | 'transferencia'>('vestibular');
   const [selectedSemester, setSelectedSemester] = useState<'S1' | 'S2'>('S1');
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
@@ -195,24 +196,87 @@ export default function App() {
     }).format(value);
   };
 
-  const pCampaignLabels: Record<keyof Course['discounts'], string> = {
+  const pCampaignLabels: Record<keyof Course['discounts'] | 'finalDeCiclo', string> = {
     vestibular: 'Vestibular com Bolsa',
     transferencia: 'Diplo / Transf / Reing',
     convenio: 'Convênio Empresa',
     imperdivel: 'Imperdível',
-    seJoga: 'Se Joga'
+    seJoga: 'Se Joga',
+    finalDeCiclo: 'Final de Ciclo'
   };
 
-  const campaignOrder: (keyof Course['discounts'])[] = [
+  const campaignOrder: (keyof Course['discounts'] | 'finalDeCiclo')[] = [
     'vestibular',
     'transferencia',
     'convenio',
     'imperdivel',
-    'seJoga'
+    'seJoga',
+    'finalDeCiclo'
   ];
 
-  const getDiscountRange = (course: Course, campaign: keyof Course['discounts']) => {
-    const d = course.discounts[campaign];
+  const getCourseCluster = (course: Course): 1 | 2 | 3 | 4 => {
+    const v = course.discounts.vestibular;
+    if (v[0] === 10 && v[1] === 20) return 1;
+    if (v[0] === 20 && v[1] === 40) return 2;
+    if (v[0] === 30 && v[1] === 45) return 3;
+    return 4; // default to 4
+  };
+
+  const getFinalDeCicloDiscount = (course: Course, semester: 'S1' | 'S2', mode: 'vestibular' | 'transferencia', currentHours: number): number => {
+    const cluster = getCourseCluster(course);
+    if (semester === 'S2') {
+      // S2 (2026/2)
+      if (currentHours <= 45) {
+        return cluster === 1 ? 5 : cluster === 2 ? 15 : cluster === 3 ? 20 : 25;
+      } else if (currentHours <= 75) {
+        return cluster === 1 ? 10 : cluster === 2 ? 20 : cluster === 3 ? 25 : 30;
+      } else {
+        return cluster === 1 ? 15 : cluster === 2 ? 25 : cluster === 3 ? 30 : 35;
+      }
+    } else {
+      // S1 (2027/1)
+      if (mode === 'vestibular') {
+        if (currentHours <= 210) {
+          return cluster === 1 ? 35 : cluster === 2 ? 45 : cluster === 3 ? 55 : 60;
+        } else if (currentHours <= 270) {
+          return cluster === 1 ? 40 : cluster === 2 ? 55 : cluster === 3 ? 60 : 65;
+        } else {
+          return cluster === 1 ? 45 : cluster === 2 ? 55 : cluster === 3 ? 60 : 65;
+        }
+      } else {
+        // transferencia
+        if (currentHours <= 210) {
+          return cluster === 1 ? 40 : cluster === 2 ? 55 : cluster === 3 ? 60 : 65;
+        } else if (currentHours <= 270) {
+          return cluster === 1 ? 45 : cluster === 2 ? 60 : cluster === 3 ? 65 : 70;
+        } else {
+          return cluster === 1 ? 50 : cluster === 2 ? 60 : cluster === 3 ? 65 : 70;
+        }
+      }
+    }
+  };
+
+  const getDiscountRange = (course: Course, campaign: keyof Course['discounts'] | 'finalDeCiclo') => {
+    if (campaign === 'finalDeCiclo') {
+      const cluster = getCourseCluster(course);
+      if (selectedSemester === 'S2') {
+        const min = cluster === 1 ? 5 : cluster === 2 ? 15 : cluster === 3 ? 20 : 25;
+        const max = cluster === 1 ? 15 : cluster === 2 ? 25 : cluster === 3 ? 30 : 35;
+        return `${min}% a ${max}%`;
+      } else {
+        if (finalDeCicloMode === 'vestibular') {
+          const min = cluster === 1 ? 35 : cluster === 2 ? 45 : cluster === 3 ? 55 : 60;
+          const max = cluster === 1 ? 45 : cluster === 2 ? 55 : cluster === 3 ? 60 : 65;
+          return `${min}% a ${max}%`;
+        } else {
+          const min = cluster === 1 ? 40 : cluster === 2 ? 55 : cluster === 3 ? 60 : 65;
+          const max = cluster === 1 ? 50 : cluster === 2 ? 60 : cluster === 3 ? 65 : 70;
+          return `${min}% a ${max}%`;
+        }
+      }
+    }
+    const activeCampaign = campaign === 'finalDeCiclo' ? finalDeCicloMode : campaign;
+    const d = course.discounts[activeCampaign];
     if (Array.isArray(d)) {
       if (d[0] === 0 && d[1] === 0) return null;
       return `${d[0]}% a ${d[1]}%`;
@@ -220,7 +284,7 @@ export default function App() {
     return `${d}%`;
   };
 
-  const updatePresencialDiscount = (course: Course, campaign: keyof Course['discounts'], currentHours: number) => {
+  const updatePresencialDiscount = (course: Course, campaign: keyof Course['discounts'] | 'finalDeCiclo', currentHours: number) => {
     if (campaign === 'convenio') {
       setPDiscount(course.discounts.convenio);
     } else if (campaign === 'imperdivel' && course.discounts.imperdivel) {
@@ -231,7 +295,27 @@ export default function App() {
       const calculatedDiscount = ((grossMonthly - impValue) / grossMonthly) * 100;
       setPDiscount(Number(calculatedDiscount.toFixed(2)));
       setPInstallments(course.discounts.imperdivel.installments);
+    } else if (campaign === 'finalDeCiclo') {
+      if (![7, 8, 9, 10].includes(pInstallments)) {
+        setPInstallments(7);
+      }
+      const calculatedDiscount = getFinalDeCicloDiscount(course, selectedSemester, finalDeCicloMode, currentHours);
+      setPDiscount(calculatedDiscount);
+    } else {
+      if (pInstallments > 10) {
+        setPInstallments(6);
+      }
+      const range = course.discounts[campaign as keyof Course['discounts']];
+      if (Array.isArray(range)) {
+        setPDiscount(range[0]);
+      }
     }
+  };
+
+  const handleFinalDeCicloModeChange = (mode: 'vestibular' | 'transferencia') => {
+    setFinalDeCicloMode(mode);
+    const calculatedDiscount = getFinalDeCicloDiscount(selectedPCourse, selectedSemester, mode, hours);
+    setPDiscount(calculatedDiscount);
   };
 
   const copyBudgetAsText = () => {
@@ -281,8 +365,11 @@ export default function App() {
       text += `Valor Bruto Mensal: ${formatCurrency(presencialResults.grossInstallment)}\n`;
       text += `Total Bruto Semestral: ${formatCurrency(presencialResults.grossInstallment * pInstallments)}\n`;
       text += `Desconto: ${pDiscount}%\n`;
-      text += `Abatimento Mensal: -${formatCurrency(presencialResults.discountPerInstallment)}\n`;
-      text += `Campanha: ${pCampaignLabels[selectedPCampaign]}\n`;
+      if (selectedPCampaign === 'finalDeCiclo') {
+        text += `Campanha: Final de Ciclo (${finalDeCicloMode === 'vestibular' ? 'Vestibular Online' : 'Diplo / Transf / Reing'})\n`;
+      } else {
+        text += `Campanha: ${pCampaignLabels[selectedPCampaign]}\n`;
+      }
     } else {
       text += `Valor Bruto Mensal: ${formatCurrency(eadResults.grossMonthly)}\n`;
       text += `Total Bruto Semestral: ${formatCurrency(eadResults.grossMonthly * 6)}\n`;
@@ -452,7 +539,14 @@ export default function App() {
                             <button
                               key={sem}
                               type="button"
-                              onClick={() => setSelectedSemester(sem as 'S1' | 'S2')}
+                              onClick={() => {
+                                const nextSem = sem as 'S1' | 'S2';
+                                setSelectedSemester(nextSem);
+                                if (selectedPCampaign === 'finalDeCiclo') {
+                                  const calculatedDiscount = getFinalDeCicloDiscount(selectedPCourse, nextSem, finalDeCicloMode, hours);
+                                  setPDiscount(calculatedDiscount);
+                                }
+                              }}
                               className="h-8 px-4 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none bg-[#4F39F6] text-white hover:brightness-110"
                               title={sem === 'S1' ? '1º Semestre' : '2º Semestre'}
                             >
@@ -474,7 +568,7 @@ export default function App() {
                         <select 
                           value={selectedPCampaign}
                           onChange={(e) => {
-                            const campaign = e.target.value as keyof Course['discounts'];
+                            const campaign = e.target.value as keyof Course['discounts'] | 'finalDeCiclo';
                             setSelectedPCampaign(campaign);
                             updatePresencialDiscount(selectedPCourse, campaign, hours);
                           }}
@@ -486,7 +580,43 @@ export default function App() {
                             </option>
                           ))}
                         </select>
-                        {selectedPCampaign !== 'imperdivel' && getDiscountRange(selectedPCourse, selectedPCampaign) && (
+                        {selectedPCampaign === 'finalDeCiclo' && (
+                          <div className="space-y-2 mt-3 p-3 bg-indigo-800/40 border border-indigo-400/30 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 block mb-1">
+                              Origem do Desconto
+                            </label>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleFinalDeCicloModeChange('vestibular')}
+                                className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${
+                                  finalDeCicloMode === 'vestibular'
+                                    ? 'bg-pink-500 text-white border-pink-400'
+                                    : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                }`}
+                              >
+                                <span>Vestibular Online</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleFinalDeCicloModeChange('transferencia')}
+                                className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${
+                                  finalDeCicloMode === 'transferencia'
+                                    ? 'bg-pink-500 text-white border-pink-400'
+                                    : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                }`}
+                              >
+                                <span>Transf/Reing/Diplo</span>
+                              </button>
+                            </div>
+                            {getDiscountRange(selectedPCourse, 'finalDeCiclo') && (
+                              <p className="text-[10px] font-bold text-indigo-100 mt-2 text-center">
+                                Faixa de Desconto: <span className="text-white font-extrabold">{getDiscountRange(selectedPCourse, 'finalDeCiclo')}</span>
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {selectedPCampaign !== 'imperdivel' && selectedPCampaign !== 'finalDeCiclo' && getDiscountRange(selectedPCourse, selectedPCampaign) && (
                           <p className="text-[10px] font-bold text-indigo-200 mt-1 ml-1 opacity-70">
                             Min/Max: {getDiscountRange(selectedPCourse, selectedPCampaign)}
                           </p>
@@ -547,6 +677,20 @@ export default function App() {
                               <p className="font-black text-sm">{selectedPCourse.discounts.imperdivel?.installments}x</p>
                             </div>
                           </div>
+                        ) : selectedPCampaign === 'finalDeCiclo' ? (
+                          [7, 8, 9, 10].map(n => (
+                            <button
+                              key={n}
+                              onClick={() => setPInstallments(n)}
+                              className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${
+                                pInstallments === n 
+                                ? 'bg-pink-500 text-white border-pink-400 shadow-md' 
+                                : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                              }`}
+                            >
+                              {n}x
+                            </button>
+                          ))
                         ) : (
                           Array.from(new Set([1, 4, 5, 6, 7, 8, 9, 10, pInstallments])).sort((a, b) => a - b).map(n => (
                             <button

@@ -85,7 +85,7 @@ export const NH_COURSES: Course[] = [
   { id: 'arquitetura', name: 'Arquitetura e Urbanismo', creditValue: 1790.47, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 1057.09, installments: 72 } } },
   { id: 'biomedicina', name: 'Biomedicina', creditValue: 1502.39, discounts: { vestibular: [30, 45], transferencia: [35, 50], seJoga: [50, 60], convenio: 50, imperdivel: { value: 899.33, installments: 60 } } },
   { id: 'direito', name: 'Direito', creditValue: 1276.70, discounts: { vestibular: [10, 20], transferencia: [15, 25], seJoga: [25, 35], convenio: 60 } },
-  { id: 'enfermagem', name: 'Enfermagem', creditValue: 892.70, discounts: { vestibular: [30, 45], transferencia: [35, 50], seJoga: [50, 60], convenio: 40 } },
+  { id: 'enfermagem', name: 'Enfermagem', creditValue: 892.70, discounts: { vestibular: [30, 45], transferencia: [35, 50], seJoga: [50, 60], convenio: 40, imperdivel: { value: 785.44, installments: 72 } } },
   { id: 'engenharia-civil', name: 'Engenharia Civil', creditValue: 1539.015, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 1106.85, installments: 72 } } },
   { id: 'engenharia-mecanica', name: 'Engenharia Mecânica', creditValue: 1539.015, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 799.05, installments: 72 } } },
   { id: 'gestao-rh', name: 'Gestão de Recursos Humanos', creditValue: 503.585, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [0, 0], convenio: 60, imperdivel: { value: 409.70, installments: 36 } } },
