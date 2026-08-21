@@ -202,16 +202,16 @@ export default function App() {
     transferencia: 'Diplo / Transf / Reing',
     convenio: 'Convênio Empresa',
     imperdivel: 'Imperdível',
-    seJoga: 'Se Joga',
+    seJoga: 'Se Joga'
   };
 
   const campaignOrder: (keyof Course['discounts'] | 'finalDeCiclo')[] = [
+    'finalDeCiclo',
     'vestibular',
     'transferencia',
     'convenio',
     'imperdivel',
-    'seJoga',
-    'finalDeCiclo'
+    'seJoga'
   ];
 
   const getCourseCluster = (course: Course): 1 | 2 | 3 | 4 => {
@@ -587,8 +587,8 @@ export default function App() {
                                 type="button"
                                 onClick={() => handleFinalDeCicloModeChange('vestibular')}
                                 className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${finalDeCicloMode === 'vestibular'
-                                    ? 'bg-pink-500 text-white border-pink-400'
-                                    : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                  ? 'bg-pink-500 text-white border-pink-400'
+                                  : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                   }`}
                               >
                                 <span>Vestibular Online</span>
@@ -597,8 +597,8 @@ export default function App() {
                                 type="button"
                                 onClick={() => handleFinalDeCicloModeChange('transferencia')}
                                 className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${finalDeCicloMode === 'transferencia'
-                                    ? 'bg-pink-500 text-white border-pink-400'
-                                    : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                  ? 'bg-pink-500 text-white border-pink-400'
+                                  : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                   }`}
                               >
                                 <span>Transf/Reing/Diplo</span>
@@ -677,8 +677,8 @@ export default function App() {
                               key={n}
                               onClick={() => setPInstallments(n)}
                               className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${pInstallments === n
-                                  ? 'bg-pink-500 text-white border-pink-400 shadow-md'
-                                  : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                ? 'bg-pink-500 text-white border-pink-400 shadow-md'
+                                : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                 }`}
                             >
                               {n}x
@@ -690,8 +690,8 @@ export default function App() {
                               key={n}
                               onClick={() => setPInstallments(n)}
                               className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${pInstallments === n
-                                  ? 'bg-pink-500 text-white border-pink-400 shadow-md'
-                                  : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                ? 'bg-pink-500 text-white border-pink-400 shadow-md'
+                                : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                 }`}
                             >
                               {n}x
@@ -821,10 +821,10 @@ export default function App() {
                                 }
                               }}
                               className={`flex-1 h-8 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${isSelected
-                                  ? 'bg-[#4F39F6] text-white'
-                                  : hasPolo
-                                    ? 'bg-[#2a2a3e] text-slate-300 hover:text-white border border-[#3b3b52]'
-                                    : 'bg-[#4F39F6] opacity-30 cursor-not-allowed border border-[#3b3b52]'
+                                ? 'bg-[#4F39F6] text-white'
+                                : hasPolo
+                                  ? 'bg-[#2a2a3e] text-slate-300 hover:text-white border border-[#3b3b52]'
+                                  : 'bg-[#4F39F6] opacity-30 cursor-not-allowed border border-[#3b3b52]'
                                 }`}
                               title={polo.fullName}
                             >
@@ -909,8 +909,8 @@ export default function App() {
                               key={opt.parcelas}
                               onClick={() => setSelectedTInstallments(opt.parcelas)}
                               className={`rounded-xl py-2.5 font-bold text-xs transition-all border-2 ${selectedTInstallments === opt.parcelas
-                                  ? 'bg-pink-500 text-white border-pink-400 shadow-md'
-                                  : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                ? 'bg-pink-500 text-white border-pink-400 shadow-md'
+                                : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                 }`}
                             >
                               {opt.parcelas}x
