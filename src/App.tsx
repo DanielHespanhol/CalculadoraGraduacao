@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Calculator, 
-  GraduationCap, 
-  Clock, 
-  Percent, 
-  CreditCard, 
-  Download, 
+import {
+  Calculator,
+  GraduationCap,
+  Clock,
+  Percent,
+  CreditCard,
+  Download,
   TrendingUp,
   Monitor,
   Users,
@@ -64,7 +64,7 @@ export default function App() {
   const [selectedTInstallments, setSelectedTInstallments] = useState<number>(12);
   const [tDiscount, setTDiscount] = useState<number>(0);
 
-  const selectedTCourse = useMemo(() => 
+  const selectedTCourse = useMemo(() =>
     TECNICO_COURSES.find(c => c.id === selectedTCourseId) || TECNICO_COURSES[0],
     [selectedTCourseId]
   );
@@ -113,7 +113,7 @@ export default function App() {
   const [selectedCampaign, setSelectedCampaign] = useState<keyof EADCourse['discounts']>('vestibular');
   const [eDiscount, setEDiscount] = useState<number>(EAD_COURSES[0].discounts.vestibular[0]);
 
-  const selectedPCourse = useMemo(() => 
+  const selectedPCourse = useMemo(() =>
     currentPresencialCourses.find(c => c.id === selectedPCourseId) || currentPresencialCourses[0],
     [currentPresencialCourses, selectedPCourseId]
   );
@@ -128,7 +128,7 @@ export default function App() {
     }
   };
 
-  const selectedECourse = useMemo(() => 
+  const selectedECourse = useMemo(() =>
     EAD_COURSES.find(c => c.id === selectedECourseId) || EAD_COURSES[0],
     [selectedECourseId]
   );
@@ -136,7 +136,7 @@ export default function App() {
   const presencialResults = useMemo(() => {
     const pricePerHour = selectedPCourse.creditValue / 20;
     const totalSemester = pricePerHour * hours;
-    
+
     let grossInstallment: number;
     let installmentWithDiscount: number;
     let totalWithDiscount: number;
@@ -172,13 +172,13 @@ export default function App() {
     const grossMonthly = selectedECourse.monthlyValue;
     const discountAmountTotal = grossMonthly * (eDiscount / 100);
     const monthlyWithDiscount = grossMonthly - discountAmountTotal;
-    
+
     // Check if campaign has special installments
     const installmentsCount = (selectedCampaign === 'imperdivel' && selectedECourse.imperdivelInstallments)
-      ? selectedECourse.imperdivelInstallments 
+      ? selectedECourse.imperdivelInstallments
       : selectedECourse.installments;
 
-    const totalSemestral = monthlyWithDiscount * 6; 
+    const totalSemestral = monthlyWithDiscount * 6;
 
     return {
       grossMonthly,
@@ -197,12 +197,12 @@ export default function App() {
   };
 
   const pCampaignLabels: Record<keyof Course['discounts'] | 'finalDeCiclo', string> = {
+    finalDeCiclo: 'Final de Ciclo'
     vestibular: 'Vestibular com Bolsa',
     transferencia: 'Diplo / Transf / Reing',
     convenio: 'Convênio Empresa',
     imperdivel: 'Imperdível',
     seJoga: 'Se Joga',
-    finalDeCiclo: 'Final de Ciclo'
   };
 
   const campaignOrder: (keyof Course['discounts'] | 'finalDeCiclo')[] = [
@@ -323,11 +323,11 @@ export default function App() {
     const isPresencial = activeTab === 'presencial';
     const isEad = activeTab === 'ead';
     const isTecnicos = activeTab === 'tecnicos';
-    
+
     let text = '';
     text += `*ORÇAMENTO - SIMULAÇÃO COMERCIAL*\n`;
     text += `${line}\n\n`;
-    
+
     if (isTecnicos) {
       text += `*Curso Técnico:* ${selectedTCourse.name}\n`;
       text += `*Modalidade:* ${selectedTCourse.modalidade}\n`;
@@ -335,7 +335,7 @@ export default function App() {
       text += `*Carga Horária:* ${selectedTCourse.cargaHoraria}h\n`;
     } else {
       text += `*Curso:* ${isPresencial ? selectedPCourse.name : selectedECourse.name}\n`;
-      
+
       if (isPresencial) {
         const campus = CAMPUS_LIST.find(c => c.id === selectedCampus);
         text += `*Campus:* ${campus?.fullName || selectedCampus} (${selectedCampus})\n`;
@@ -345,11 +345,11 @@ export default function App() {
         text += `*Praça:* ${selectedPraca}\n`;
       }
     }
-    
+
     text += `\n${line}\n`;
     text += `*RESUMO FINANCEIRO*\n`;
     text += `${line}\n\n`;
-    
+
     if (isTecnicos) {
       text += `Opção de Parcelamento: ${tecnicosResults.installments}x\n`;
       text += `Valor da Parcela (Bruto): ${formatCurrency(tecnicosResults.installmentValue)}\n`;
@@ -377,11 +377,11 @@ export default function App() {
       text += `Abatimento Mensal: -${formatCurrency(eadResults.discountAmountTotal)}\n`;
       text += `Campanha: ${campaignLabels[selectedCampaign]}\n`;
     }
-    
+
     text += `\n${line}\n`;
     text += `*CONDIÇÕES DE PAGAMENTO*\n`;
     text += `${line}\n\n`;
-    
+
     if (isTecnicos) {
       text += `Total de Parcelas: ${tecnicosResults.installments < 10 ? `0${tecnicosResults.installments}` : tecnicosResults.installments}x\n`;
       text += `*Valor da Parcela: ${formatCurrency(tecnicosResults.installmentValue)}*\n`;
@@ -392,7 +392,7 @@ export default function App() {
       text += `*Valor com Desconto: ${isPresencial ? formatCurrency(presencialResults.installmentWithDiscount) : formatCurrency(eadResults.monthlyWithDiscount)}*\n`;
       text += `Forma de Pagamento: Boleto\n`;
     }
-    
+
     text += `\n${line}\n`;
     text += `Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}\n`;
     text += `FTEC Faculdades\n`;
@@ -415,34 +415,31 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4 font-sans selection:bg-pink-200">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white w-full max-w-6xl min-h-[700px] rounded-[40px] shadow-2xl flex flex-col overflow-hidden border-8 border-white"
       >
         {/* Tab Switcher */}
         <div className="flex bg-gray-100 p-2 gap-2">
-          <button 
+          <button
             onClick={() => setActiveTab('presencial')}
-            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-3xl font-black transition-all ${
-              activeTab === 'presencial' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-transparent text-gray-400 hover:bg-gray-200'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-3xl font-black transition-all ${activeTab === 'presencial' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-transparent text-gray-400 hover:bg-gray-200'
+              }`}
           >
             <Users size={20} /> PRESENCIAL
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('ead')}
-            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-3xl font-black transition-all ${
-              activeTab === 'ead' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-transparent text-gray-400 hover:bg-gray-200'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-3xl font-black transition-all ${activeTab === 'ead' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-transparent text-gray-400 hover:bg-gray-200'
+              }`}
           >
             <Monitor size={20} /> EAD / SEMI
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('tecnicos')}
-            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-3xl font-black transition-all ${
-              activeTab === 'tecnicos' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-transparent text-gray-400 hover:bg-gray-200'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-3xl font-black transition-all ${activeTab === 'tecnicos' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-transparent text-gray-400 hover:bg-gray-200'
+              }`}
           >
             <BookOpen size={20} /> TÉCNICOS
           </button>
@@ -453,9 +450,9 @@ export default function App() {
           <div className="w-full md:w-5/12 bg-indigo-600 p-8 lg:p-12 flex flex-col justify-between overflow-y-auto">
             <div>
               <div className="mb-8 overflow-hidden flex items-center justify-start">
-                <img 
-                  src="https://www.ftec.com.br/assets/templates/ftec/img/logo_ftec_white.png" 
-                  alt="FTEC Logo" 
+                <img
+                  src="https://www.ftec.com.br/assets/templates/ftec/img/logo_ftec_white.png"
+                  alt="FTEC Logo"
                   className="h-10 lg:h-12 w-auto object-contain brightness-0 invert opacity-90"
                   onError={(e) => {
                     // Fallback to a styled text if image fails
@@ -469,13 +466,13 @@ export default function App() {
                 {activeTab === 'presencial' ? 'Orçamento Presencial' : activeTab === 'ead' ? 'Orçamento EAD' : 'Orçamento Técnicos'}
               </h1>
               <p className="text-indigo-100 text-base lg:text-lg mb-8 opacity-80">
-                {activeTab === 'presencial' 
-                  ? 'Planeje seu próximo semestre presencial com precisão.' 
+                {activeTab === 'presencial'
+                  ? 'Planeje seu próximo semestre presencial com precisão.'
                   : activeTab === 'ead'
-                  ? 'Simule sua mensalidade para cursos EAD e Semipresenciais.'
-                  : 'Simule o investimento para cursos técnicos.'}
+                    ? 'Simule sua mensalidade para cursos EAD e Semipresenciais.'
+                    : 'Simule o investimento para cursos técnicos.'}
               </p>
-              
+
               <div className="space-y-6">
                 {activeTab === 'presencial' ? (
                   <>
@@ -509,7 +506,7 @@ export default function App() {
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <GraduationCap size={12} /> Escolha sua Graduação
                       </label>
-                      <select 
+                      <select
                         value={selectedPCourseId}
                         onChange={(e) => {
                           const newId = e.target.value;
@@ -559,13 +556,13 @@ export default function App() {
                         })}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                           <Percent size={12} /> Campanha de Desconto
                         </label>
-                        <select 
+                        <select
                           value={selectedPCampaign}
                           onChange={(e) => {
                             const campaign = e.target.value as keyof Course['discounts'] | 'finalDeCiclo';
@@ -589,22 +586,20 @@ export default function App() {
                               <button
                                 type="button"
                                 onClick={() => handleFinalDeCicloModeChange('vestibular')}
-                                className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${
-                                  finalDeCicloMode === 'vestibular'
+                                className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${finalDeCicloMode === 'vestibular'
                                     ? 'bg-pink-500 text-white border-pink-400'
                                     : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
-                                }`}
+                                  }`}
                               >
                                 <span>Vestibular Online</span>
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleFinalDeCicloModeChange('transferencia')}
-                                className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${
-                                  finalDeCicloMode === 'transferencia'
+                                className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${finalDeCicloMode === 'transferencia'
                                     ? 'bg-pink-500 text-white border-pink-400'
                                     : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
-                                }`}
+                                  }`}
                               >
                                 <span>Transf/Reing/Diplo</span>
                               </button>
@@ -623,14 +618,14 @@ export default function App() {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                           <Clock size={12} /> Carga Horária
                         </label>
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           value={hours}
                           step="10"
                           min="10"
@@ -646,17 +641,16 @@ export default function App() {
                         <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                           <Percent size={12} /> Desconto (%)
                         </label>
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           value={pDiscount}
                           min="0"
                           max="100"
                           step="5"
                           disabled={selectedPCampaign === 'imperdivel'}
                           onChange={(e) => setPDiscount(Number(e.target.value))}
-                          className={`w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 text-sm font-bold transition-all ${
-                            selectedPCampaign === 'imperdivel' ? 'opacity-50 cursor-not-allowed grayscale-50' : ''
-                          }`}
+                          className={`w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 text-sm font-bold transition-all ${selectedPCampaign === 'imperdivel' ? 'opacity-50 cursor-not-allowed grayscale-50' : ''
+                            }`}
                         />
                       </div>
                     </div>
@@ -682,11 +676,10 @@ export default function App() {
                             <button
                               key={n}
                               onClick={() => setPInstallments(n)}
-                              className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${
-                                pInstallments === n 
-                                ? 'bg-pink-500 text-white border-pink-400 shadow-md' 
-                                : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
-                              }`}
+                              className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${pInstallments === n
+                                  ? 'bg-pink-500 text-white border-pink-400 shadow-md'
+                                  : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                }`}
                             >
                               {n}x
                             </button>
@@ -696,11 +689,10 @@ export default function App() {
                             <button
                               key={n}
                               onClick={() => setPInstallments(n)}
-                              className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${
-                                pInstallments === n 
-                                ? 'bg-pink-500 text-white border-pink-400 shadow-md' 
-                                : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
-                              }`}
+                              className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${pInstallments === n
+                                  ? 'bg-pink-500 text-white border-pink-400 shadow-md'
+                                  : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                }`}
                             >
                               {n}x
                             </button>
@@ -744,7 +736,7 @@ export default function App() {
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <GraduationCap size={12} /> Escolha sua Graduação EAD
                       </label>
-                      <select 
+                      <select
                         value={selectedECourseId}
                         onChange={(e) => {
                           const newId = e.target.value;
@@ -767,7 +759,7 @@ export default function App() {
                         <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                           <Percent size={12} /> Campanha de Desconto
                         </label>
-                        <select 
+                        <select
                           value={selectedCampaign}
                           onChange={(e) => {
                             const campaign = e.target.value as keyof EADCourse['discounts'];
@@ -793,16 +785,15 @@ export default function App() {
                         <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                           <Calculator size={12} /> Desconto (%) Manual
                         </label>
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           value={eDiscount}
                           min="0"
                           max="100"
                           disabled={selectedCampaign === 'imperdivel'}
                           onChange={(e) => setEDiscount(Number(e.target.value))}
-                          className={`w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 text-sm font-bold transition-all ${
-                            selectedCampaign === 'imperdivel' ? 'opacity-50 cursor-not-allowed grayscale-50' : ''
-                          }`}
+                          className={`w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 text-sm font-bold transition-all ${selectedCampaign === 'imperdivel' ? 'opacity-50 cursor-not-allowed grayscale-50' : ''
+                            }`}
                         />
                       </div>
                     </div>
@@ -829,13 +820,12 @@ export default function App() {
                                   setSelectedTInstallments(poloData.options[0].parcelas);
                                 }
                               }}
-                              className={`flex-1 h-8 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${
-                                isSelected 
-                                  ? 'bg-[#4F39F6] text-white' 
+                              className={`flex-1 h-8 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${isSelected
+                                  ? 'bg-[#4F39F6] text-white'
                                   : hasPolo
                                     ? 'bg-[#2a2a3e] text-slate-300 hover:text-white border border-[#3b3b52]'
                                     : 'bg-[#4F39F6] opacity-30 cursor-not-allowed border border-[#3b3b52]'
-                              }`}
+                                }`}
                               title={polo.fullName}
                             >
                               <div className="w-2.5 h-2.5 flex-shrink-0 rounded-full border-[1.5px] border-white flex items-center justify-center">
@@ -857,7 +847,7 @@ export default function App() {
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <GraduationCap size={12} /> Escolha o Curso Técnico
                       </label>
-                      <select 
+                      <select
                         value={selectedTCourseId}
                         onChange={(e) => {
                           const newId = e.target.value;
@@ -897,8 +887,8 @@ export default function App() {
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <Percent size={12} /> Desconto (%) Manual
                       </label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         value={tDiscount}
                         min="0"
                         max="100"
@@ -918,11 +908,10 @@ export default function App() {
                             <button
                               key={opt.parcelas}
                               onClick={() => setSelectedTInstallments(opt.parcelas)}
-                              className={`rounded-xl py-2.5 font-bold text-xs transition-all border-2 ${
-                                selectedTInstallments === opt.parcelas
-                                ? 'bg-pink-500 text-white border-pink-400 shadow-md' 
-                                : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
-                              }`}
+                              className={`rounded-xl py-2.5 font-bold text-xs transition-all border-2 ${selectedTInstallments === opt.parcelas
+                                  ? 'bg-pink-500 text-white border-pink-400 shadow-md'
+                                  : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
+                                }`}
                             >
                               {opt.parcelas}x
                             </button>
@@ -997,13 +986,13 @@ export default function App() {
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="flex flex-col sm:flex-row justify-between sm:items-end pt-6 gap-6">
                     <div>
                       <span className="text-indigo-600 font-black text-sm uppercase tracking-widest flex items-center gap-2">
                         <TrendingUp size={14} /> {tecnicosResults.tDiscountPercent > 0 ? 'Valor com Desconto' : 'Investimento Total'}
                       </span>
-                      <motion.div 
+                      <motion.div
                         key={tecnicosResults.tDiscountPercent > 0 ? tecnicosResults.totalWithDiscount : tecnicosResults.totalValue}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1030,7 +1019,7 @@ export default function App() {
                   <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
                     <p className="text-gray-500 font-medium text-sm mb-1 uppercase tracking-wide">Total de Parcelas</p>
                     <p className="text-2xl lg:text-3xl font-black text-gray-900">
-                      {activeTab === 'presencial' 
+                      {activeTab === 'presencial'
                         ? (pInstallments < 10 ? `0${pInstallments}` : pInstallments)
                         : (eadResults.installmentsCount < 10 ? `0${eadResults.installmentsCount}` : eadResults.installmentsCount)
                       } meses
@@ -1057,14 +1046,14 @@ export default function App() {
                       -{activeTab === 'presencial' ? formatCurrency(presencialResults.discountPerInstallment) : formatCurrency(eadResults.discountAmountTotal)}
                     </span>
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row justify-between sm:items-end pt-6 gap-6">
                     <div>
                       <span className="text-indigo-600 font-black text-sm uppercase tracking-widest flex items-center gap-2">
                         <TrendingUp size={14} /> Valor com Desconto
                       </span>
                       <AnimatePresence mode="wait">
-                        <motion.div 
+                        <motion.div
                           key={activeTab === 'presencial' ? presencialResults.installmentWithDiscount : eadResults.monthlyWithDiscount}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -1086,7 +1075,7 @@ export default function App() {
             )}
 
             <div className="mt-12 flex flex-col sm:flex-row gap-4">
-              <button 
+              <button
                 onClick={() => setShowBudgetModal(true)}
                 className="flex-1 bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
               >
@@ -1101,14 +1090,14 @@ export default function App() {
       {/* Budget Modal */}
       <AnimatePresence>
         {showBudgetModal && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowBudgetModal(false)}
           >
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -1123,14 +1112,14 @@ export default function App() {
                     ORÇAMENTO - SIMULAÇÃO COMERCIAL
                   </h2>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowBudgetModal(false)}
                   className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 hover:text-gray-600 transition-all text-gray-400 flex-shrink-0"
                 >
                   <X size={18} />
                 </button>
               </div>
-              
+
               {/* Content */}
               <div className="p-6 lg:p-8 space-y-6">
                 {/* Course Info */}
@@ -1235,8 +1224,8 @@ export default function App() {
                         <div className="flex justify-between py-3 px-4">
                           <span className="text-gray-500 font-medium">Valor Total Bruto Semestral</span>
                           <span className="font-bold text-gray-900">
-                            {activeTab === 'presencial' 
-                              ? formatCurrency(presencialResults.grossInstallment * pInstallments) 
+                            {activeTab === 'presencial'
+                              ? formatCurrency(presencialResults.grossInstallment * pInstallments)
                               : formatCurrency(eadResults.grossMonthly * 6)}
                           </span>
                         </div>
@@ -1320,8 +1309,8 @@ export default function App() {
                           <div>
                             <span className="text-gray-500 font-medium block">Valor com Desconto (Mensal)</span>
                             <span className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
-                              {activeTab === 'presencial' 
-                                ? `Campanha: ${pCampaignLabels[selectedPCampaign]}` 
+                              {activeTab === 'presencial'
+                                ? `Campanha: ${pCampaignLabels[selectedPCampaign]}`
                                 : `Campanha: ${campaignLabels[selectedCampaign]}`}
                             </span>
                           </div>
@@ -1344,14 +1333,14 @@ export default function App() {
 
               {/* Footer */}
               <div className="flex flex-col sm:flex-row gap-3 p-6 lg:p-8 border-t border-gray-100 bg-gray-50/50">
-                <button 
+                <button
                   onClick={() => window.print()}
                   className="flex-1 bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
                 >
                   <Printer size={20} />
                   Imprimir / Exportar PDF
                 </button>
-                <button 
+                <button
                   onClick={copyBudgetAsText}
                   className="flex-1 bg-emerald-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
                 >
@@ -1360,7 +1349,7 @@ export default function App() {
                   </svg>
                   {copiedToClipboard ? 'Copiado! ✓' : 'Copiar TXT (WhatsApp)'}
                 </button>
-                <button 
+                <button
                   onClick={() => setShowBudgetModal(false)}
                   className="flex-1 sm:flex-none border-2 border-gray-200 text-gray-500 font-bold py-4 px-8 rounded-2xl hover:bg-white hover:text-gray-700 hover:border-gray-300 transition-all"
                 >
