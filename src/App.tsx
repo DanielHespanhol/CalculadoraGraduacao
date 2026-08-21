@@ -197,7 +197,7 @@ export default function App() {
   };
 
   const pCampaignLabels: Record<keyof Course['discounts'] | 'finalDeCiclo', string> = {
-    finalDeCiclo: 'Final de Ciclo'
+    finalDeCiclo: 'Final de Ciclo',
     vestibular: 'Vestibular com Bolsa',
     transferencia: 'Diplo / Transf / Reing',
     convenio: 'Convênio Empresa',
