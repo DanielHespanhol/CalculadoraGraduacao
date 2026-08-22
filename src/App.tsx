@@ -49,7 +49,7 @@ export default function App() {
 
   // Presencial States
   const [selectedPCourseId, setSelectedPCourseId] = useState<string>(currentPresencialCourses[0]?.id || '');
-  const [hours, setHours] = useState<number>(360);
+  const [hours, setHours] = useState<number>(180);
   const [pDiscount, setPDiscount] = useState<number>(0);
   const [pInstallments, setPInstallments] = useState<number>(6);
   const [selectedPCampaign, setSelectedPCampaign] = useState<keyof Course['discounts'] | 'finalDeCiclo'>('vestibular');
@@ -416,11 +416,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4 font-sans selection:bg-pink-200">
+    <div className="min-h-screen bg-[#000538] flex items-center justify-center p-4 font-sans selection:bg-pink-200">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white w-full max-w-6xl min-h-[700px] rounded-[40px] shadow-2xl flex flex-col overflow-hidden border-8 border-white"
+        className="bg-white w-full max-w-6xl min-h-[700px] rounded-[40px] shadow-2xl flex flex-col overflow-hidden border-8 border-[#2a2a3e]"
       >
         {/* Tab Switcher */}
         <div className="flex bg-gray-100 p-2 gap-2">
@@ -478,7 +478,7 @@ export default function App() {
               <div className="space-y-6">
                 {activeTab === 'presencial' ? (
                   <>
-                    {/* Custom Campus Selector (Neumorphic slider styling from Botoes2.png) */}
+                    {/* Custom Campus Selector */}
                     <div className="space-y-3 mb-6">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <Users size={12} /> Campus
@@ -493,7 +493,7 @@ export default function App() {
                               onClick={() => handleCampusChange(campus.id)}
                               className={`flex-1 h-11 rounded-full flex items-center justify-center gap-1.5 font-black text-xs transition-all duration-300 cursor-pointer shadow-md focus:outline-none ${isSelected
                                 ? 'bg-[#2a2a3e] text-white border border-[#3b3b52]'
-                                : 'bg-[#4F39F6] text-slate-200 hover:text-white'
+                                : 'bg-[#0045FF] text-slate-200 hover:text-white'
                                 }`}
                               title={campus.fullName}
                             >
@@ -507,72 +507,8 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
-                        <GraduationCap size={12} /> Escolha sua Graduação
-                      </label>
-                      <select
-                        value={selectedPCourseId}
-                        onChange={(e) => {
-                          const newId = e.target.value;
-                          setSelectedPCourseId(newId);
-                          const course = currentPresencialCourses.find(c => c.id === newId);
-                          if (course) updatePresencialDiscount(course, selectedPCampaign, hours);
-                        }}
-                        className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
-                      >
-                        {currentPresencialCourses.map(course => (
-                          <option key={course.id} value={course.id} className="bg-indigo-800">
-                            {course.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Semester Selector (S1/S2) */}
-                    <div className="space-y-2 mb-4">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
-                        <Clock size={12} /> Período
-                      </label>
-                      <div className="flex items-center gap-2 select-none">
-                        {['S1', 'S2'].map((sem) => {
-                          const isSelected = selectedSemesters.includes(sem as 'S1' | 'S2');
-                          return (
-                            <button
-                              key={sem}
-                              type="button"
-                              onClick={() => {
-                                const s = sem as 'S1' | 'S2';
-                                let nextSemesters: ('S1' | 'S2')[];
-                                if (selectedSemesters.includes(s)) {
-                                  if (selectedSemesters.length === 1) return; // Keep at least one selected
-                                  nextSemesters = selectedSemesters.filter(x => x !== s);
-                                } else {
-                                  nextSemesters = [...selectedSemesters, s].sort();
-                                }
-                                setSelectedSemesters(nextSemesters);
-                                if (selectedPCampaign === 'finalDeCiclo') {
-                                  const calculatedDiscount = getFinalDeCicloDiscount(selectedPCourse, nextSemesters, finalDeCicloMode, hours);
-                                  setPDiscount(calculatedDiscount);
-                                }
-                              }}
-                              className={`h-8 px-4 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${isSelected
-                                ? 'bg-[#2a2a3e] text-white border border-[#3b3b52]'
-                                : 'bg-[#4F39F6] text-slate-200 hover:text-white'
-                                }`}
-                              title={sem === 'S1' ? '1º Semestre' : '2º Semestre'}
-                            >
-                              <div className="w-2.5 h-2.5 flex-shrink-0 rounded-full border-[1.5px] border-white flex items-center justify-center">
-                                <div className={`w-1 h-1 rounded-full transition-colors ${isSelected ? 'bg-white' : 'bg-transparent'}`} />
-                              </div>
-                               <span>{sem}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
+                    {/* Campanha de Desconto */}
+                    <div className="space-y-4 mb-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                           <Percent size={12} /> Campanha de Desconto
@@ -634,7 +570,77 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Escolha sua Graduação */}
+                    <div className="space-y-2 mb-6">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <GraduationCap size={12} /> Escolha sua Graduação
+                      </label>
+                      <select
+                        value={selectedPCourseId}
+                        onChange={(e) => {
+                          const newId = e.target.value;
+                          setSelectedPCourseId(newId);
+                          const course = currentPresencialCourses.find(c => c.id === newId);
+                          if (course) updatePresencialDiscount(course, selectedPCampaign, hours);
+                        }}
+                        className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
+                      >
+                        {currentPresencialCourses.map(course => (
+                          <option key={course.id} value={course.id} className="bg-indigo-800">
+                            {course.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Semester Selector (S1/S2) - Período */}
+                    <div className="space-y-2 mb-6">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <Clock size={12} /> Período
+                      </label>
+                      <div className="flex items-center gap-2 select-none">
+                        {['S1', 'S2'].map((sem) => {
+                          const isSelected = selectedSemesters.includes(sem as 'S1' | 'S2');
+                          return (
+                            <button
+                              key={sem}
+                              type="button"
+                              onClick={() => {
+                                const s = sem as 'S1' | 'S2';
+                                let nextSemesters: ('S1' | 'S2')[];
+                                if (selectedSemesters.includes(s)) {
+                                  if (selectedSemesters.length === 1) {
+                                    nextSemesters = s === 'S1' ? ['S2'] : ['S1'];
+                                  } else {
+                                    nextSemesters = selectedSemesters.filter(x => x !== s);
+                                  }
+                                } else {
+                                  nextSemesters = [...selectedSemesters, s].sort();
+                                }
+                                setSelectedSemesters(nextSemesters);
+                                if (selectedPCampaign === 'finalDeCiclo') {
+                                  const calculatedDiscount = getFinalDeCicloDiscount(selectedPCourse, nextSemesters, finalDeCicloMode, hours);
+                                  setPDiscount(calculatedDiscount);
+                                }
+                              }}
+                              className={`h-8 px-4 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${isSelected
+                                ? 'bg-[#2a2a3e] text-white border border-[#3b3b52]'
+                                : 'bg-[#0045FF] text-slate-200 hover:text-white'
+                                }`}
+                              title={sem === 'S1' ? '1º Semestre' : '2º Semestre'}
+                            >
+                              <div className="w-2.5 h-2.5 flex-shrink-0 rounded-full border-[1.5px] border-white flex items-center justify-center">
+                                <div className={`w-1 h-1 rounded-full transition-colors ${isSelected ? 'bg-white' : 'bg-transparent'}`} />
+                              </div>
+                               <span>{sem}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Carga Horária e Desconto */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                           <Clock size={12} /> Carga Horária
@@ -692,7 +698,7 @@ export default function App() {
                               key={n}
                               onClick={() => setPInstallments(n)}
                               className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${pInstallments === n
-                                ? 'bg-pink-500 text-white border-pink-400 shadow-md'
+                                ? 'bg-[#2a2a3e] text-white border-[#3b3b52] shadow-md'
                                 : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                 }`}
                             >
@@ -705,7 +711,7 @@ export default function App() {
                               key={n}
                               onClick={() => setPInstallments(n)}
                               className={`rounded-xl py-2 font-bold text-xs transition-all border-2 ${pInstallments === n
-                                ? 'bg-pink-500 text-white border-pink-400 shadow-md'
+                                ? 'bg-[#2a2a3e] text-white border-[#3b3b52] shadow-md'
                                 : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                 }`}
                             >
@@ -718,7 +724,7 @@ export default function App() {
                   </>
                 ) : activeTab === 'ead' ? (
                   <>
-                    {/* Praça Selector - same style as Campus buttons */}
+                    {/* Praça Selector */}
                     <div className="space-y-3 mb-6">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <Layers size={12} /> Praça
@@ -734,11 +740,14 @@ export default function App() {
                                 setSelectedPraca(praca as 1 | 2 | 3);
                                 setEDiscount(selectedECourse.discounts[selectedCampaign][praca - 1]);
                               }}
-                              className="flex-1 h-11 rounded-full flex items-center justify-center gap-1.5 font-black text-xs transition-all duration-300 cursor-pointer shadow-md focus:outline-none bg-[#4F39F6] text-white hover:brightness-110"
+                              className={`flex-1 h-11 rounded-full flex items-center justify-center gap-1.5 font-black text-xs transition-all duration-300 cursor-pointer shadow-md focus:outline-none ${isSelected
+                                ? 'bg-[#2a2a3e] text-white border border-[#3b3b52]'
+                                : 'bg-[#0045FF] text-slate-200 hover:text-white'
+                                }`}
                               title={`Praça ${praca}`}
                             >
                               <div className="w-3.5 h-3.5 flex-shrink-0 rounded-full border-2 border-white flex items-center justify-center">
-                                <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSelected ? 'bg-[#A432FE]' : 'bg-transparent'}`} />
+                                <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSelected ? 'bg-white' : 'bg-transparent'}`} />
                               </div>
                               <span>Praça {praca}</span>
                             </button>
@@ -747,7 +756,33 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    {/* Campanha de Desconto */}
+                    <div className="space-y-2 mb-6">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
+                        <Percent size={12} /> Campanha de Desconto
+                      </label>
+                      <select
+                        value={selectedCampaign}
+                        onChange={(e) => {
+                          const campaign = e.target.value as keyof EADCourse['discounts'];
+                          setSelectedCampaign(campaign);
+                          setEDiscount(selectedECourse.discounts[campaign][selectedPraca - 1]);
+                        }}
+                        className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
+                      >
+                        {campaignOrder.map((key) => {
+                          if (key === 'finalDeCiclo') return null;
+                          return (
+                            <option key={key} value={key} className="bg-indigo-800">
+                              {campaignLabels[key as keyof EADCourse['discounts']]}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    {/* Escolha sua Graduação EAD */}
+                    <div className="space-y-2 mb-6">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                         <GraduationCap size={12} /> Escolha sua Graduação EAD
                       </label>
@@ -769,33 +804,16 @@ export default function App() {
                       </select>
                     </div>
 
-                    <div className="space-y-4">
+                    {/* Desconto de Tabela e Manual */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
-                          <Percent size={12} /> Campanha de Desconto
+                          <Percent size={12} /> Desconto de Tabela
                         </label>
-                        <select
-                          value={selectedCampaign}
-                          onChange={(e) => {
-                            const campaign = e.target.value as keyof EADCourse['discounts'];
-                            setSelectedCampaign(campaign);
-                            setEDiscount(selectedECourse.discounts[campaign][selectedPraca - 1]);
-                          }}
-                          className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
-                        >
-                          {campaignOrder.map((key) => (
-                            <option key={key} value={key} className="bg-indigo-800">
-                              {campaignLabels[key as keyof EADCourse['discounts']]}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white text-sm font-bold h-[54px] flex items-center">
+                          {selectedECourse.discounts[selectedCampaign][selectedPraca - 1]}%
+                        </div>
                       </div>
-
-                      <div className="bg-indigo-400/30 border border-indigo-400 rounded-2xl p-4 flex justify-between items-center">
-                        <span className="text-[10px] font-black text-indigo-100 uppercase tracking-widest">Percentual de Tabela</span>
-                        <span className="text-2xl font-black text-white">{selectedECourse.discounts[selectedCampaign][selectedPraca - 1]}%</span>
-                      </div>
-
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 flex items-center gap-2">
                           <Calculator size={12} /> Desconto (%) Manual
@@ -838,8 +856,8 @@ export default function App() {
                               className={`flex-1 h-8 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${isSelected
                                 ? 'bg-[#2a2a3e] text-white border border-[#3b3b52]'
                                 : hasPolo
-                                  ? 'bg-[#4F39F6] text-slate-200 hover:text-white'
-                                  : 'bg-[#4F39F6] opacity-30 cursor-not-allowed border border-[#3b3b52]'
+                                  ? 'bg-[#0045FF] text-slate-200 hover:text-white'
+                                  : 'bg-[#0045FF] opacity-30 cursor-not-allowed border border-[#3b3b52]'
                                 }`}
                               title={polo.fullName}
                             >
@@ -924,7 +942,7 @@ export default function App() {
                               key={opt.parcelas}
                               onClick={() => setSelectedTInstallments(opt.parcelas)}
                               className={`rounded-xl py-2.5 font-bold text-xs transition-all border-2 ${selectedTInstallments === opt.parcelas
-                                ? 'bg-pink-500 text-white border-pink-400 shadow-md'
+                                ? 'bg-[#2a2a3e] text-white border-[#3b3b52] shadow-md'
                                 : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                 }`}
                             >
@@ -1057,7 +1075,7 @@ export default function App() {
                   </div>
                   <div className="flex justify-between items-center group">
                     <span className="text-gray-500 font-medium text-lg">Abatimento Mensal</span>
-                    <span className="text-pink-500 font-bold text-xl text-right">
+                    <span className="bg-pink-50 border border-pink-200 px-3 py-1 rounded-full text-pink-500 font-bold text-xl text-right shadow-sm">
                       -{activeTab === 'presencial' ? formatCurrency(presencialResults.discountPerInstallment) : formatCurrency(eadResults.discountAmountTotal)}
                     </span>
                   </div>
@@ -1244,15 +1262,15 @@ export default function App() {
                               : formatCurrency(eadResults.grossMonthly * 6)}
                           </span>
                         </div>
-                        <div className="flex justify-between py-3 px-4">
+                        <div className="flex justify-between items-center py-2 px-4">
                           <span className="text-gray-500 font-medium">Desconto Mensal</span>
-                          <span className="font-bold text-emerald-600">
+                          <span className="bg-pink-50 border border-pink-200 px-3 py-1 rounded-full text-pink-500 font-bold shadow-sm">
                             {activeTab === 'presencial' ? pDiscount : eDiscount}%
                           </span>
                         </div>
-                        <div className="flex justify-between py-3 px-4">
+                        <div className="flex justify-between items-center py-2 px-4">
                           <span className="text-gray-500 font-medium">Abatimento Mensal</span>
-                          <span className="font-bold text-pink-600">
+                          <span className="bg-pink-50 border border-pink-200 px-3 py-1 rounded-full text-pink-500 font-bold shadow-sm">
                             -{activeTab === 'presencial' ? formatCurrency(presencialResults.discountPerInstallment) : formatCurrency(eadResults.discountAmountTotal)}
                           </span>
                         </div>

@@ -1,1 +1,32 @@
 @import "tailwindcss";
+
+@theme {
+  /* Premium Corporate Font */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Blue theme */
+  --color-indigo-50: #e6e8ff;
+  --color-indigo-100: #ccd1ff;
+  --color-indigo-200: #99a3ff;
+  --color-indigo-300: #6675ff;
+  --color-indigo-400: #3347ff;
+  --color-indigo-500: #0019ff;
+  --color-indigo-600: #0016E0;
+  --color-indigo-700: #0011b0;
+  --color-indigo-800: #000d85;
+  --color-indigo-900: #00095c;
+  --color-indigo-950: #000533;
+
+  /* Green theme for discounts & abatements */
+  --color-pink-50: #e8ffee;
+  --color-pink-100: #ccffd6;
+  --color-pink-200: #6EFF9D;
+  --color-pink-300: #3fffa1;
+  --color-pink-400: #0F4F22;
+  --color-pink-500: #0F4F22;
+  --color-pink-600: #0F4F22;
+  --color-pink-700: #0b3b19;
+  --color-pink-800: #072610;
+  --color-pink-900: #041408;
+  --color-pink-950: #020a04;
+}
