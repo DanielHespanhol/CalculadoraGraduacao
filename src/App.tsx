@@ -538,7 +538,7 @@ export default function App() {
                                 type="button"
                                 onClick={() => handleFinalDeCicloModeChange('vestibular')}
                                 className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${finalDeCicloMode === 'vestibular'
-                                  ? 'bg-pink-500 text-white border-pink-400'
+                                  ? 'bg-[#2a2a3e] text-white border-[#3b3b52]'
                                   : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                   }`}
                               >
@@ -548,7 +548,7 @@ export default function App() {
                                 type="button"
                                 onClick={() => handleFinalDeCicloModeChange('transferencia')}
                                 className={`flex-1 h-9 rounded-full flex items-center justify-center gap-1.5 font-bold text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none border ${finalDeCicloMode === 'transferencia'
-                                  ? 'bg-pink-500 text-white border-pink-400'
+                                  ? 'bg-[#2a2a3e] text-white border-[#3b3b52]'
                                   : 'bg-indigo-700 text-indigo-200 border-indigo-400 hover:border-white'
                                   }`}
                               >
