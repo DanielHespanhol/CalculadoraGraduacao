@@ -54,7 +54,7 @@ export default function App() {
   const [pInstallments, setPInstallments] = useState<number>(6);
   const [selectedPCampaign, setSelectedPCampaign] = useState<keyof Course['discounts'] | 'finalDeCiclo'>('vestibular');
   const [finalDeCicloMode, setFinalDeCicloMode] = useState<'vestibular' | 'transferencia'>('vestibular');
-  const [selectedSemester, setSelectedSemester] = useState<'S1' | 'S2'>('S1');
+  const [selectedSemesters, setSelectedSemesters] = useState<('S1' | 'S2')[]>(['S1']);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
 
@@ -222,10 +222,11 @@ export default function App() {
     return 4; // default to 4
   };
 
-  const getFinalDeCicloDiscount = (course: Course, semester: 'S1' | 'S2', mode: 'vestibular' | 'transferencia', currentHours: number): number => {
+  const getFinalDeCicloDiscount = (course: Course, semesters: ('S1' | 'S2')[], mode: 'vestibular' | 'transferencia', currentHours: number): number => {
     const cluster = getCourseCluster(course);
-    if (semester === 'S2') {
-      // S2 (2026/2)
+    const isBoth = semesters.includes('S1') && semesters.includes('S2');
+    if (!isBoth) {
+      // Either S1 alone or S2 alone -> use S2 range
       if (currentHours <= 45) {
         return cluster === 1 ? 5 : cluster === 2 ? 15 : cluster === 3 ? 20 : 25;
       } else if (currentHours <= 75) {
@@ -234,7 +235,7 @@ export default function App() {
         return cluster === 1 ? 15 : cluster === 2 ? 25 : cluster === 3 ? 30 : 35;
       }
     } else {
-      // S1 (2027/1)
+      // Both S1 and S2 selected -> use S1 range
       if (mode === 'vestibular') {
         if (currentHours <= 210) {
           return cluster === 1 ? 35 : cluster === 2 ? 45 : cluster === 3 ? 55 : 60;
@@ -259,7 +260,8 @@ export default function App() {
   const getDiscountRange = (course: Course, campaign: keyof Course['discounts'] | 'finalDeCiclo') => {
     if (campaign === 'finalDeCiclo') {
       const cluster = getCourseCluster(course);
-      if (selectedSemester === 'S2') {
+      const isBoth = selectedSemesters.includes('S1') && selectedSemesters.includes('S2');
+      if (!isBoth) {
         const min = cluster === 1 ? 5 : cluster === 2 ? 15 : cluster === 3 ? 20 : 25;
         const max = cluster === 1 ? 15 : cluster === 2 ? 25 : cluster === 3 ? 30 : 35;
         return `${min}% a ${max}%`;
@@ -299,7 +301,7 @@ export default function App() {
       if (![7, 8, 9, 10].includes(pInstallments)) {
         setPInstallments(7);
       }
-      const calculatedDiscount = getFinalDeCicloDiscount(course, selectedSemester, finalDeCicloMode, currentHours);
+      const calculatedDiscount = getFinalDeCicloDiscount(course, selectedSemesters, finalDeCicloMode, currentHours);
       setPDiscount(calculatedDiscount);
     } else {
       if (pInstallments > 10) {
@@ -314,7 +316,7 @@ export default function App() {
 
   const handleFinalDeCicloModeChange = (mode: 'vestibular' | 'transferencia') => {
     setFinalDeCicloMode(mode);
-    const calculatedDiscount = getFinalDeCicloDiscount(selectedPCourse, selectedSemester, mode, hours);
+    const calculatedDiscount = getFinalDeCicloDiscount(selectedPCourse, selectedSemesters, mode, hours);
     setPDiscount(calculatedDiscount);
   };
 
@@ -339,7 +341,7 @@ export default function App() {
       if (isPresencial) {
         const campus = CAMPUS_LIST.find(c => c.id === selectedCampus);
         text += `*Campus:* ${campus?.fullName || selectedCampus} (${selectedCampus})\n`;
-        text += `*Período:* ${selectedSemester}\n`;
+        text += `*Período:* ${selectedSemesters.join(' + ')}\n`;
         text += `*Carga Horária:* ${hours}h\n`;
       } else {
         text += `*Praça:* ${selectedPraca}\n`;
@@ -489,11 +491,14 @@ export default function App() {
                               key={campus.id}
                               type="button"
                               onClick={() => handleCampusChange(campus.id)}
-                              className="flex-1 h-11 rounded-full flex items-center justify-center gap-1.5 font-black text-xs transition-all duration-300 cursor-pointer shadow-md focus:outline-none bg-[#4F39F6] text-white hover:brightness-110"
+                              className={`flex-1 h-11 rounded-full flex items-center justify-center gap-1.5 font-black text-xs transition-all duration-300 cursor-pointer shadow-md focus:outline-none ${isSelected
+                                ? 'bg-[#2a2a3e] text-white border border-[#3b3b52]'
+                                : 'bg-[#4F39F6] text-slate-200 hover:text-white'
+                                }`}
                               title={campus.fullName}
                             >
                               <div className="w-3.5 h-3.5 flex-shrink-0 rounded-full border-2 border-white flex items-center justify-center">
-                                <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSelected ? 'bg-[#A432FE]' : 'bg-transparent'}`} />
+                                <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSelected ? 'bg-white' : 'bg-transparent'}`} />
                               </div>
                               <span>{campus.label}</span>
                             </button>
@@ -531,26 +536,36 @@ export default function App() {
                       </label>
                       <div className="flex items-center gap-2 select-none">
                         {['S1', 'S2'].map((sem) => {
-                          const isSelected = sem === selectedSemester;
+                          const isSelected = selectedSemesters.includes(sem as 'S1' | 'S2');
                           return (
                             <button
                               key={sem}
                               type="button"
                               onClick={() => {
-                                const nextSem = sem as 'S1' | 'S2';
-                                setSelectedSemester(nextSem);
+                                const s = sem as 'S1' | 'S2';
+                                let nextSemesters: ('S1' | 'S2')[];
+                                if (selectedSemesters.includes(s)) {
+                                  if (selectedSemesters.length === 1) return; // Keep at least one selected
+                                  nextSemesters = selectedSemesters.filter(x => x !== s);
+                                } else {
+                                  nextSemesters = [...selectedSemesters, s].sort();
+                                }
+                                setSelectedSemesters(nextSemesters);
                                 if (selectedPCampaign === 'finalDeCiclo') {
-                                  const calculatedDiscount = getFinalDeCicloDiscount(selectedPCourse, nextSem, finalDeCicloMode, hours);
+                                  const calculatedDiscount = getFinalDeCicloDiscount(selectedPCourse, nextSemesters, finalDeCicloMode, hours);
                                   setPDiscount(calculatedDiscount);
                                 }
                               }}
-                              className="h-8 px-4 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none bg-[#4F39F6] text-white hover:brightness-110"
+                              className={`h-8 px-4 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${isSelected
+                                ? 'bg-[#2a2a3e] text-white border border-[#3b3b52]'
+                                : 'bg-[#4F39F6] text-slate-200 hover:text-white'
+                                }`}
                               title={sem === 'S1' ? '1º Semestre' : '2º Semestre'}
                             >
                               <div className="w-2.5 h-2.5 flex-shrink-0 rounded-full border-[1.5px] border-white flex items-center justify-center">
-                                <div className={`w-1 h-1 rounded-full transition-colors ${isSelected ? 'bg-[#A432FE]' : 'bg-transparent'}`} />
+                                <div className={`w-1 h-1 rounded-full transition-colors ${isSelected ? 'bg-white' : 'bg-transparent'}`} />
                               </div>
-                              <span>{sem}</span>
+                               <span>{sem}</span>
                             </button>
                           );
                         })}
@@ -821,15 +836,15 @@ export default function App() {
                                 }
                               }}
                               className={`flex-1 h-8 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] transition-all duration-300 cursor-pointer shadow-sm focus:outline-none ${isSelected
-                                ? 'bg-[#4F39F6] text-white'
+                                ? 'bg-[#2a2a3e] text-white border border-[#3b3b52]'
                                 : hasPolo
-                                  ? 'bg-[#2a2a3e] text-slate-300 hover:text-white border border-[#3b3b52]'
+                                  ? 'bg-[#4F39F6] text-slate-200 hover:text-white'
                                   : 'bg-[#4F39F6] opacity-30 cursor-not-allowed border border-[#3b3b52]'
                                 }`}
                               title={polo.fullName}
                             >
                               <div className="w-2.5 h-2.5 flex-shrink-0 rounded-full border-[1.5px] border-white flex items-center justify-center">
-                                <div className={`w-1 h-1 rounded-full transition-colors ${isSelected ? 'bg-[#A432FE]' : 'bg-transparent'}`} />
+                                <div className={`w-1 h-1 rounded-full transition-colors ${isSelected ? 'bg-white' : 'bg-transparent'}`} />
                               </div>
                               <span>{polo.label}</span>
                             </button>
@@ -1140,7 +1155,7 @@ export default function App() {
                       </div>
                       <div className="flex justify-between items-center gap-4">
                         <span className="text-gray-500 font-bold text-xs uppercase tracking-wide flex-shrink-0">Período</span>
-                        <span className="text-gray-900 font-bold text-right">{selectedSemester}</span>
+                        <span className="text-gray-900 font-bold text-right">{selectedSemesters.join(' + ')}</span>
                       </div>
                     </>
                   )}
