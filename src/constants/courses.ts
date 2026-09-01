@@ -88,9 +88,9 @@ export const NH_COURSES: Course[] = [
   { id: 'enfermagem', name: 'Enfermagem', creditValue: 892.70, discounts: { vestibular: [30, 45], transferencia: [35, 50], seJoga: [50, 60], convenio: 40, imperdivel: { value: 785.44, installments: 72 } } },
   { id: 'engenharia-civil', name: 'Engenharia Civil', creditValue: 1539.015, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 1106.85, installments: 72 } } },
   { id: 'engenharia-mecanica', name: 'Engenharia Mecânica', creditValue: 1539.015, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 799.05, installments: 72 } } },
-  { id: 'gestao-rh', name: 'Gestão de Recursos Humanos', creditValue: 503.585, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [0, 0], convenio: 60, imperdivel: { value: 409.70, installments: 36 } } },
-  { id: 'marketing', name: 'Marketing', creditValue: 503.585, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [0, 0], convenio: 60, imperdivel: { value: 409.70, installments: 36 } } },
-  { id: 'processos-gerenciais', name: 'Processos Gerenciais', creditValue: 503.585, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 409.70, installments: 36 } } },
+  { id: 'gestao-rh', name: 'Gestão de Recursos Humanos', creditValue: 604.90, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [0, 0], convenio: 60, imperdivel: { value: 409.70, installments: 36 } } },
+  { id: 'marketing', name: 'Marketing', creditValue: 604.90, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [0, 0], convenio: 60, imperdivel: { value: 409.70, installments: 36 } } },
+  { id: 'processos-gerenciais', name: 'Processos Gerenciais', creditValue: 604.90, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 409.70, installments: 36 } } },
   { id: 'psicologia', name: 'Psicologia', creditValue: 1476.04, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60 } },
 ].sort((a, b) => a.name.localeCompare(b.name));
 
