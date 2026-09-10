@@ -97,7 +97,7 @@ export const NH_COURSES: Course[] = [
 // ============ IBG - Ibegen ============
 export const IBG_COURSES: Course[] = [
   { id: 'direito', name: 'Direito', creditValue: 1506.47, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 900.26, installments: 72 } } },
-  { id: 'psicologia', name: 'Psicologia', creditValue: 1610.77, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 921.03, installments: 72 } } },
+  { id: 'psicologia', name: 'Psicologia', creditValue: 1546, 34, discounts: { vestibular: [40, 55], transferencia: [45, 60], seJoga: [50, 60], convenio: 60, imperdivel: { value: 921.03, installments: 72 } } },
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 // ============ POA - Porto Alegre ZN ============
