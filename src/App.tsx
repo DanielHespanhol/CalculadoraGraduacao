@@ -436,7 +436,7 @@ export default function App() {
             className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-3xl font-black transition-all ${activeTab === 'ead' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-transparent text-gray-400 hover:bg-gray-200'
               }`}
           >
-            <Monitor size={20} /> EAD / SEMI
+            <Monitor size={20} /> EAD
           </button>
           <button
             onClick={() => setActiveTab('tecnicos')}
@@ -471,7 +471,7 @@ export default function App() {
                 {activeTab === 'presencial'
                   ? 'Planeje seu próximo semestre presencial com precisão.'
                   : activeTab === 'ead'
-                    ? 'Simule sua mensalidade para cursos EAD e Semipresenciais.'
+                    ? 'Simule sua mensalidade para cursos EAD.'
                     : 'Simule o investimento para cursos técnicos.'}
               </p>
 
