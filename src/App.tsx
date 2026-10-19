@@ -214,6 +214,15 @@ export default function App() {
     'seJoga'
   ];
 
+  const eadCampaignOrder: (keyof EADCourse['discounts'])[] = [
+    'vestibular',
+    'transferencia',
+    'convenio',
+    'imperdivel',
+    'seJoga',
+    'eadPremia'
+  ];
+
   const getCourseCluster = (course: Course): 1 | 2 | 3 | 4 => {
     const v = course.discounts.vestibular;
     if (v[0] === 10 && v[1] === 20) return 1;
@@ -277,8 +286,7 @@ export default function App() {
         }
       }
     }
-    const activeCampaign = campaign === 'finalDeCiclo' ? finalDeCicloMode : campaign;
-    const d = course.discounts[activeCampaign];
+    const d = course.discounts[campaign];
     if (Array.isArray(d)) {
       if (d[0] === 0 && d[1] === 0) return null;
       return `${d[0]}% a ${d[1]}%`;
@@ -412,7 +420,8 @@ export default function App() {
     transferencia: 'Diplo / Transf / Reing',
     convenio: 'Convênio Empresa',
     imperdivel: 'Imperdível',
-    seJoga: 'Se Joga'
+    seJoga: 'Se Joga',
+    eadPremia: 'EAD Premia'
   };
 
   return (
@@ -770,14 +779,11 @@ export default function App() {
                         }}
                         className="w-full bg-indigo-700 border-2 border-indigo-400 rounded-2xl p-4 text-white focus:outline-none focus:ring-4 focus:ring-pink-400 appearance-none cursor-pointer text-sm"
                       >
-                        {campaignOrder.map((key) => {
-                          if (key === 'finalDeCiclo') return null;
-                          return (
-                            <option key={key} value={key} className="bg-indigo-800">
-                              {campaignLabels[key as keyof EADCourse['discounts']]}
-                            </option>
-                          );
-                        })}
+                        {eadCampaignOrder.map((key) => (
+                          <option key={key} value={key} className="bg-indigo-800">
+                            {campaignLabels[key]}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
