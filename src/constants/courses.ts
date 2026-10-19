@@ -170,28 +170,28 @@ export const TECNICO_COURSES = [
       {
         polo: 'Bento Gonçalves',
         options: [
-          { parcelas: 1, valorParcela: 2288.92, valorTotal: 2288.92 },
-          { parcelas: 6, valorParcela: 403.58, valorTotal: 2421.47 },
-          { parcelas: 12, valorParcela: 213.00, valorTotal: 2556.00 },
-          { parcelas: 18, valorParcela: 152.59, valorTotal: 2746.65 },
+          { parcelas: 1, valorParcela: 2597.92, valorTotal: 2597.92 },
+          { parcelas: 6, valorParcela: 458.06, valorTotal: 2748.36 },
+          { parcelas: 12, valorParcela: 241.76, valorTotal: 2901.06 },
+          { parcelas: 18, valorParcela: 173.19, valorTotal: 3117.44 },
         ]
       },
       {
         polo: 'Caxias do Sul',
         options: [
-          { parcelas: 1, valorParcela: 2288.92, valorTotal: 2288.92 },
-          { parcelas: 6, valorParcela: 403.58, valorTotal: 2421.47 },
-          { parcelas: 12, valorParcela: 213.00, valorTotal: 2556.00 },
-          { parcelas: 18, valorParcela: 152.59, valorTotal: 2746.65 },
+          { parcelas: 1, valorParcela: 2597.92, valorTotal: 2597.92 },
+          { parcelas: 6, valorParcela: 458.06, valorTotal: 2748.36 },
+          { parcelas: 12, valorParcela: 241.76, valorTotal: 2901.06 },
+          { parcelas: 18, valorParcela: 173.19, valorTotal: 3117.44 },
         ]
       },
       {
         polo: 'Novo Hamburgo',
         options: [
-          { parcelas: 1, valorParcela: 2288.92, valorTotal: 2288.92 },
-          { parcelas: 6, valorParcela: 403.58, valorTotal: 2421.47 },
-          { parcelas: 12, valorParcela: 213.00, valorTotal: 2556.00 },
-          { parcelas: 18, valorParcela: 152.59, valorTotal: 2746.65 },
+          { parcelas: 1, valorParcela: 2597.92, valorTotal: 2597.92 },
+          { parcelas: 6, valorParcela: 458.06, valorTotal: 2748.36 },
+          { parcelas: 12, valorParcela: 241.76, valorTotal: 2901.06 },
+          { parcelas: 18, valorParcela: 173.19, valorTotal: 3117.44 },
         ]
       }
     ]
@@ -206,10 +206,10 @@ export const TECNICO_COURSES = [
       {
         polo: 'Caxias do Sul',
         options: [
-          { parcelas: 1, valorParcela: 2288.92, valorTotal: 2288.92 },
-          { parcelas: 6, valorParcela: 403.58, valorTotal: 2421.47 },
-          { parcelas: 12, valorParcela: 213.00, valorTotal: 2556.00 },
-          { parcelas: 18, valorParcela: 152.59, valorTotal: 2746.65 },
+          { parcelas: 1, valorParcela: 2597.92, valorTotal: 2597.92 },
+          { parcelas: 6, valorParcela: 458.06, valorTotal: 2748.36 },
+          { parcelas: 12, valorParcela: 241.76, valorTotal: 2901.06 },
+          { parcelas: 18, valorParcela: 173.19, valorTotal: 3117.44 },
         ]
       }
     ]
@@ -223,28 +223,28 @@ export const TECNICO_COURSES = [
       {
         polo: 'Bento Gonçalves',
         options: [
-          { parcelas: 1, valorParcela: 3090.06, valorTotal: 3090.06 },
-          { parcelas: 6, valorParcela: 545.87, valorTotal: 3275.21 },
-          { parcelas: 12, valorParcela: 289.33, valorTotal: 3471.92 },
-          { parcelas: 18, valorParcela: 206.39, valorTotal: 3715.02 },
+          { parcelas: 1, valorParcela: 3507.21, valorTotal: 3507.21 },
+          { parcelas: 6, valorParcela: 619.56, valorTotal: 3717.36 },
+          { parcelas: 12, valorParcela: 328.39, valorTotal: 3940.62 },
+          { parcelas: 18, valorParcela: 234.25, valorTotal: 4216.54 },
         ]
       },
       {
         polo: 'Caxias do Sul',
         options: [
-          { parcelas: 1, valorParcela: 3090.06, valorTotal: 3090.06 },
-          { parcelas: 6, valorParcela: 545.87, valorTotal: 3275.21 },
-          { parcelas: 12, valorParcela: 289.33, valorTotal: 3471.92 },
-          { parcelas: 18, valorParcela: 206.39, valorTotal: 3715.02 },
+          { parcelas: 1, valorParcela: 3507.21, valorTotal: 3507.21 },
+          { parcelas: 6, valorParcela: 619.56, valorTotal: 3717.36 },
+          { parcelas: 12, valorParcela: 328.39, valorTotal: 3940.62 },
+          { parcelas: 18, valorParcela: 234.25, valorTotal: 4216.54 },
         ]
       },
       {
         polo: 'Novo Hamburgo',
         options: [
-          { parcelas: 1, valorParcela: 3090.06, valorTotal: 3090.06 },
-          { parcelas: 6, valorParcela: 545.87, valorTotal: 3275.21 },
-          { parcelas: 12, valorParcela: 289.33, valorTotal: 3471.92 },
-          { parcelas: 18, valorParcela: 206.39, valorTotal: 3715.02 },
+          { parcelas: 1, valorParcela: 3507.21, valorTotal: 3507.21 },
+          { parcelas: 6, valorParcela: 619.56, valorTotal: 3717.36 },
+          { parcelas: 12, valorParcela: 328.39, valorTotal: 3940.62 },
+          { parcelas: 18, valorParcela: 234.25, valorTotal: 4216.54 },
         ]
       }
     ]
@@ -258,12 +258,12 @@ export const TECNICO_COURSES = [
       {
         polo: 'Caxias do Sul',
         options: [
-          { parcelas: 1, valorParcela: 10261.44, valorTotal: 10261.44 },
-          { parcelas: 6, valorParcela: 1995.28, valorTotal: 11971.68 },
-          { parcelas: 12, valorParcela: 1140.16, valorTotal: 13681.92 },
-          { parcelas: 18, valorParcela: 807.63, valorTotal: 14537.37 },
-          { parcelas: 24, valorParcela: 655.59, valorTotal: 15734.20 },
-          { parcelas: 30, valorParcela: 570.08, valorTotal: 17102.40 },
+          { parcelas: 1, valorParcela: 11646.73, valorTotal: 11646.73 },
+          { parcelas: 6, valorParcela: 2264.64, valorTotal: 13587.85 },
+          { parcelas: 12, valorParcela: 1294.08, valorTotal: 15528.97 },
+          { parcelas: 18, valorParcela: 916.66, valorTotal: 16499.91 },
+          { parcelas: 24, valorParcela: 727.07, valorTotal: 17449.71 },
+          { parcelas: 30, valorParcela: 647.04, valorTotal: 19411.22 },
         ]
       }
     ]
@@ -277,34 +277,56 @@ export const TECNICO_COURSES = [
       {
         polo: 'Novo Hamburgo',
         options: [
-          { parcelas: 1, valorParcela: 8170.04, valorTotal: 8170.04 },
-          { parcelas: 6, valorParcela: 1588.62, valorTotal: 9531.71 },
-          { parcelas: 12, valorParcela: 907.78, valorTotal: 10893.38 },
-          { parcelas: 18, valorParcela: 643.01, valorTotal: 11574.22 },
-          { parcelas: 24, valorParcela: 524.16, valorTotal: 12579.84 },
-          { parcelas: 30, valorParcela: 453.89, valorTotal: 13616.73 },
+          { parcelas: 1, valorParcela: 9272.99, valorTotal: 9272.99 },
+          { parcelas: 6, valorParcela: 1769.03, valorTotal: 10614.19 },
+          { parcelas: 12, valorParcela: 1030.33, valorTotal: 12363.98 },
+          { parcelas: 18, valorParcela: 729.82, valorTotal: 13136.73 },
+          { parcelas: 24, valorParcela: 594.92, valorTotal: 14278.11 },
+          { parcelas: 30, valorParcela: 515.17, valorTotal: 15454.98 },
+          { parcelas: 42, valorParcela: 367.98, valorTotal: 15454.98 },
         ]
       },
       {
         polo: 'Bento Gonçalves',
         options: [
-          { parcelas: 1, valorParcela: 8170.04, valorTotal: 8170.04 },
-          { parcelas: 6, valorParcela: 1588.62, valorTotal: 9531.71 },
-          { parcelas: 12, valorParcela: 907.78, valorTotal: 10893.38 },
-          { parcelas: 18, valorParcela: 643.01, valorTotal: 11574.22 },
-          { parcelas: 24, valorParcela: 524.16, valorTotal: 12579.84 },
-          { parcelas: 30, valorParcela: 453.89, valorTotal: 13616.73 },
+          { parcelas: 1, valorParcela: 9272.99, valorTotal: 9272.99 },
+          { parcelas: 6, valorParcela: 1769.03, valorTotal: 10614.19 },
+          { parcelas: 12, valorParcela: 1030.33, valorTotal: 12363.98 },
+          { parcelas: 18, valorParcela: 729.82, valorTotal: 13136.73 },
+          { parcelas: 24, valorParcela: 594.92, valorTotal: 14278.11 },
+          { parcelas: 30, valorParcela: 515.17, valorTotal: 15454.98 },
+          { parcelas: 42, valorParcela: 367.98, valorTotal: 15454.98 },
         ]
       },
       {
         polo: 'Caxias do Sul',
         options: [
-          { parcelas: 1, valorParcela: 8170.04, valorTotal: 8170.04 },
-          { parcelas: 6, valorParcela: 1588.62, valorTotal: 9531.71 },
-          { parcelas: 12, valorParcela: 907.78, valorTotal: 10893.38 },
-          { parcelas: 18, valorParcela: 643.01, valorTotal: 11574.22 },
-          { parcelas: 24, valorParcela: 524.16, valorTotal: 12579.84 },
-          { parcelas: 30, valorParcela: 453.89, valorTotal: 13616.73 },
+          { parcelas: 1, valorParcela: 9272.99, valorTotal: 9272.99 },
+          { parcelas: 6, valorParcela: 1769.03, valorTotal: 10614.19 },
+          { parcelas: 12, valorParcela: 1030.33, valorTotal: 12363.98 },
+          { parcelas: 18, valorParcela: 729.82, valorTotal: 13136.73 },
+          { parcelas: 24, valorParcela: 594.92, valorTotal: 14278.11 },
+          { parcelas: 30, valorParcela: 515.17, valorTotal: 15454.98 },
+          { parcelas: 42, valorParcela: 367.98, valorTotal: 15454.98 },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'tec-presencial',
+    name: 'Técnico Presencial',
+    modalidade: 'Presencial',
+    cargaHoraria: 1200,
+    observacoes: 'Liberado apenas para Caxias do Sul',
+    polos: [
+      {
+        polo: 'Caxias do Sul',
+        options: [
+          { parcelas: 1, valorParcela: 8426.70, valorTotal: 8426.70 },
+          { parcelas: 6, valorParcela: 1638.50, valorTotal: 9830.99 },
+          { parcelas: 12, valorParcela: 936.28, valorTotal: 11235.39 },
+          { parcelas: 18, valorParcela: 663.21, valorTotal: 11937.77 },
+          { parcelas: 24, valorParcela: 585.18, valorTotal: 14044.37 },
         ]
       }
     ]
